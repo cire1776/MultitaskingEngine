@@ -1,31 +1,58 @@
 // swift-tools-version: 6.0
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
     name: "MultitaskingEngine",
+    platforms: [
+        .macOS(.v15) // ✅ Set to macOS 12 to avoid 15.0 restriction issues
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "MultitaskingEngine",
-            targets: ["MultitaskingEngine"]),
-        
+            targets: ["MultitaskingEngine", "PointerUtilities"]
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.0"),
         .package(url: "https://github.com/Quick/Quick.git", from: "7.0.0"),
-        .package(url: "https://github.com/Quick/Nimble.git", exact: "12.3.0")
+        .package(url: "https://github.com/Quick/Nimble.git", exact: "13.0.0"),
+        .package(name: "ULangLib", path: "../")  // ✅ Ensure this path is correct
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MultitaskingEngine"),
+            name: "MultitaskingEngine",
+            dependencies: [
+                "PointerUtilities",
+                .product(name: "Atomics", package: "swift-atomics")
+            ],
+            path: "Sources/MultitaskingEngine"
+        ),
+        .target(
+            name: "PointerUtilities",
+            path: "CSources/PointerUtilities",
+            exclude: [],
+            sources: ["pointer_utilities.c"],
+            publicHeadersPath: "include"
+        ),
+        .target(
+            name: "TestHelpers",
+            dependencies: ["MultitaskingEngine", "PointerUtilities"],
+            path: "Sources/TestHelpers"
+        ),
         .testTarget(
             name: "MultitaskingEngineTests",
-            dependencies: ["MultitaskingEngine"]
+            dependencies: [
+                "MultitaskingEngine",
+                "Quick",
+                "Nimble",
+                "TestHelpers",
+                "PointerUtilities",
+                "ULangLib"
+            ],
+            path: "Tests/MultitaskingEngineTests", linkerSettings: [
+                .linkedFramework("XCTest") // ✅ Explicitly link XCTest
+            ]
         ),
     ]
 )

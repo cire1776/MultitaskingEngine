@@ -1,5 +1,5 @@
 {
-  "originHash" : "2ec42500847e9c600bbfcc11238c670705404a16570a96ab232cafe7c82d45ce",
+  "originHash" : "f867f2014c154c01d06392f35ec9e6071fa83573a69bc68059abe4df3beddc0c",
   "pins" : [
     {
       "identity" : "cwlcatchexception",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Quick/Nimble.git",
       "state" : {
-        "revision" : "edaedc1ec86f14ac6e2ca495b94f0ff7150d98d0",
-        "version" : "12.3.0"
+        "revision" : "d616f15123bfb36db1b1075153f73cf40605b39d",
+        "version" : "13.0.0"
       }
     },
     {
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-numerics.git",
       "state" : {
-        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
-        "version" : "1.0.2"
+        "revision" : "e0ec0f5f3af6f3e4d5e7a19d2af26b481acb6ba8",
+        "version" : "1.0.3"
       }
     }
   ],
