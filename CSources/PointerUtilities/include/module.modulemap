@@ -1,0 +1,5 @@
+module PointerUtilities {
+    header "pointer_utilities.h"
+    header "pointer_utilities_bridge.h"
+    export *
+}
