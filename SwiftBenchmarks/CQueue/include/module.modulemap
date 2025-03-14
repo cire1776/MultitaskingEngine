@@ -1,0 +1,5 @@
+module CQueue {
+    header "circular_queue.h"
+    header "circular_queue_bridge.h"
+    export *
+}

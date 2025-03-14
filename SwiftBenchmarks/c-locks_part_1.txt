@@ -1,0 +1,80 @@
+#include "c_variable_store.h"
+
+// ✅ Initialize the variable store
+void init_variable_store(VariableStore* store) {
+    store->value = 0;
+}
+
+// ✅ Set a value in the store
+void set_variable(VariableStore* store, int new_value) {
+    store->value = new_value;
+}
+
+// ✅ Retrieve a value from the store
+int get_variable(VariableStore* store) {
+    return store->value;
+}
+//
+//  c_variable_store_bridge.h
+//  
+//
+//  Created by Eric Russell on 3/4/25.
+//
+
+#ifndef C_VARIABLE_STORE_BRIDGE_H
+#define C_VARIABLE_STORE_BRIDGE_H
+
+#include "c_variable_store.h"
+
+// ✅ Bridge functions for Swift interop
+void init_variable_store_bridge(void);
+void set_variable_bridge(int new_value);
+int get_variable_bridge(void);
+
+#endif
+//
+//  c_variable_store.h
+//  
+//
+//  Created by Eric Russell on 3/4/25.
+//
+
+#ifndef C_VARIABLE_STORE_H
+#define C_VARIABLE_STORE_H
+
+#include <stdbool.h>
+
+// ✅ Define a simple struct-based key-value store
+typedef struct {
+    int value;
+} VariableStore;
+
+// ✅ Function declarations
+void init_variable_store(VariableStore* store);
+void set_variable(VariableStore* store, int new_value);
+int get_variable(VariableStore* store);
+
+#endif
+//
+//  c_variable_store_bridge.h
+//  
+//
+//  Created by Eric Russell on 3/4/25.
+//
+
+#include "c_variable_store_bridge.h"
+
+// ✅ Create a global VariableStore instance
+static VariableStore global_store;
+
+void init_variable_store_bridge() {
+    init_variable_store(&global_store);
+}
+
+void set_variable_bridge(int new_value) {
+    set_variable(&global_store, new_value);
+}
+
+int get_variable_bridge() {
+    return get_variable(&global_store);
+}

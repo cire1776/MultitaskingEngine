@@ -1,0 +1,227 @@
+//
+//  main.swift
+//  SwiftBenchmarks
+//
+//  Created by Eric Russell on 3/2/25.
+//
+
+// The Swift Programming Language
+// https://docs.swift.org/swift-book
+
+import Foundation
+import Atomics  // ✅ Atomic counters for accurate benchmarking
+
+//@main
+struct SBenchmarkApp {
+    static func main() async {
+        print("🚀 Starting Benchmark...\n")
+
+        let iterations = 1_000_000_000  // **1 BILLION iterations**
+        let counter = ManagedAtomic(0)  // ✅ Atomic counter to prevent optimizations
+
+        let startTime = DispatchTime.now()
+
+        @inline(__always)  // ✅ Forces inlining for accurate measurements
+        func performWork(_ step: UInt64) {
+            counter.wrappingIncrement(ordering: .relaxed)  // ✅ Atomic increment
+        }
+
+        await Task(priority: .high) {  // ✅ Run in high-priority task
+            for _ in 0..<iterations {
+                performWork(1)
+            }
+        }.value  // ✅ Wait for task to complete
+
+        let endTime = DispatchTime.now()
+
+        let elapsedNanoseconds = Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds)
+        let opsPerSecond = elapsedNanoseconds > 0
+            ? Double(iterations) / (elapsedNanoseconds / 1_000_000_000)
+            : Double(iterations)
+
+        print("🔥 Executed \(iterations) iterations in \(elapsedNanoseconds) ns (\(opsPerSecond) OPS)\n")
+    }
+}
+
+// run this
+//
+//  CircularQueueWrapper.swift
+//  SwiftBenchmarks
+//
+//  Created by Eric Russell on 3/3/25.
+//
+
+//import CQueue  // ✅ Import the C module
+//
+//final class CircularQueueWrapper: @unchecked Sendable {
+//    init() {
+//        initQueueBridge()
+//    }
+//
+//    func enqueue(_ value: Int) -> Bool {
+//        return enqueueBridge(Int32(value))
+//    }
+//
+//    func dequeue() -> Int? {
+//        var value: Int32 = 0
+//        return dequeueBridge(&value) ? Int(value) : nil
+//    }
+//}
+import Foundation
+//import Atomics
+//import Dispatch
+//import CQueue   ✅ Ensure CQueue is imported
+
+//// ✅ Measure execution time helper
+//func measureExecutionTime(label: String, _ block: () -> Void) {
+//    let startTime = DispatchTime.now()
+//    block()
+//    let endTime = DispatchTime.now()
+//    
+//    let elapsedNanoseconds = Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds)
+//    let opsPerSecond = elapsedNanoseconds > 0 ? (1_000_000_000.0 / elapsedNanoseconds) : 0
+//    
+//    print("🔥 \(label) - Time: \(elapsedNanoseconds) ns, Ops/sec: \(opsPerSecond)")
+//}
+
+//// ✅ Benchmark function (runs all benchmarks)
+//func benchmark() {
+//    let iterations = 100_000_000  // ✅ 100M iterations
+//
+//    print("🚀 Running All Benchmarks...")
+//
+//    // ✅ Closure Array Lookup
+//    let closureArray: [@Sendable () -> Void] = Array(repeating: { return }, count: 10)
+//    measureExecutionTime(label: "Closure Array Lookup") {
+//        for i in 0..<iterations {
+//            closureArray[i % closureArray.count]()
+//        }
+//    }
+//
+//    // ✅ Function Pointer Lookup
+//    func op1() {}; func op2() {}; func op3() {}; func op4() {}; func op5() {}
+//    func op6() {}; func op7() {}; func op8() {}; func op9() {}; func op10() {}
+//    
+//    let functionPointers: [() -> Void] = [op1, op2, op3, op4, op5, op6, op7, op8, op9, op10]
+//    measureExecutionTime(label: "Function Pointer Lookup") {
+//        for i in 0..<iterations {
+//            functionPointers[i % functionPointers.count]()
+//        }
+//    }
+//
+//    // ✅ Closure with Struct Passing
+//    struct FlowVars { var key: Int = 42 }
+//    var flowVars = FlowVars()
+//    let structClosures: [@Sendable (inout FlowVars) -> Void] = Array(repeating: { _ in return }, count: 10)
+//    measureExecutionTime(label: "Closure with Struct Passing") {
+//        for i in 0..<iterations {
+//            structClosures[i % structClosures.count](&flowVars)
+//        }
+//    }
+//
+//    // ✅ Integer Map Instead of Switch
+//    let operations = Array(repeating: { return }, count: 10)
+//    measureExecutionTime(label: "Integer Map Instead of Switch") {
+//        for i in 0..<iterations {
+//            operations[i % operations.count]()
+//        }
+//    }
+//
+//    // ✅ Closure with Dictionary Lookup
+//    let closureWithDictionaryArray: [@Sendable (inout [String: Any]) -> Void] =
+//        Array(repeating: { _ in return }, count: 10)
+//    measureExecutionTime(label: "Closure with Dictionary Lookup") {
+//        var flowVars: [String: Any] = ["key": 42]
+//        for i in 0..<iterations {
+//            closureWithDictionaryArray[i % closureWithDictionaryArray.count](&flowVars)
+//        }
+//    }
+//
+//    // ✅ Switch Case Execution
+//    var count = 0
+//    measureExecutionTime(label: "Switch Case Execution") {
+//        for i in 0..<iterations {
+//            switch i % 10 {
+//            case 0...9: count += 1
+//            default: fatalError("Unexpected case")
+//            }
+//        }
+//    }
+//
+//    // ✅ Enum-Based Dispatch
+//    enum Operation { case op1, op2, op3, op4, op5, op6, op7, op8, op9, op10 }
+//    let enumOperations: [Operation] = [.op1, .op2, .op3, .op4, .op5, .op6, .op7, .op8, .op9, .op10]
+//    var enumCount = 0
+//    measureExecutionTime(label: "Enum-Based Dispatch") {
+//        for i in 0..<iterations {
+//            _ = enumOperations[i % enumOperations.count]
+//            enumCount += 1
+//        }
+//    }
+//
+//    // ✅ Parallelized Execution
+//    let parallelCounter = ManagedAtomic(0)
+//    measureExecutionTime(label: "Parallelized Execution") {
+//        DispatchQueue.concurrentPerform(iterations: iterations) {_ in 
+//            parallelCounter.wrappingIncrement(ordering: .relaxed)
+//        }
+//    }
+//
+//    // ✅ Optimized Actor-Based Parallel Execution
+//    actor CounterActor { var value = 0; func increment(by amount: Int) { value += amount } }
+//    let counterActor = CounterActor()
+//    measureExecutionTime(label: "Optimized Actor-Based Parallel Execution") {
+//        DispatchQueue.concurrentPerform(iterations: 10) {_ in 
+//            Task { await counterActor.increment(by: 10_000_000) }
+//        }
+//    }
+//    Task {
+//        let finalValue = await counterActor.value
+//        print("🔥 Final Actor Counter: \(finalValue)")
+//    }
+//
+//    // ✅ Lock-Free Atomic Execution
+//    let atomicCounter = ManagedAtomic(0)
+//    measureExecutionTime(label: "Lock-Free Atomic Execution") {
+//        DispatchQueue.concurrentPerform(iterations: iterations) {_ in 
+//            atomicCounter.wrappingIncrement(ordering: .relaxed)
+//        }
+//    }
+//    print("🔥 Final Lock-Free Counter: \(atomicCounter.load(ordering: .relaxed))")
+//
+//    // ✅ Serial Counter Execution
+//    final class SerialCounter: @unchecked Sendable {
+//        private var count = 0
+//        private var mutex = pthread_mutex_t()
+//        init() { pthread_mutex_init(&mutex, nil) }
+//        deinit { pthread_mutex_destroy(&mutex) }
+//        func increment() { pthread_mutex_lock(&mutex); defer { pthread_mutex_unlock(&mutex) }; count += 1 }
+//        func getCount() -> Int { pthread_mutex_lock(&mutex); defer { pthread_mutex_unlock(&mutex) }; return count }
+//    }
+//    let serialCounter = SerialCounter()
+//    measureExecutionTime(label: "Serial Counter Execution") {
+//        DispatchQueue.concurrentPerform(iterations: iterations) {_ in 
+//            serialCounter.increment()
+//        }
+//    }
+//    print("🔥 Final Serial Queue Counter: \(serialCounter.getCount())")
+//
+//    // ✅ C Lock-Free Circular Queue Execution
+//    let queue = CircularQueueWrapper()
+//    measureExecutionTime(label: "C Lock-Free Circular Queue Execution") {
+//        DispatchQueue.concurrentPerform(iterations: iterations) {
+//            _ = queue.enqueue($0 % 1000)
+//            _ = queue.dequeue()
+//        }
+//    }
+//    print("🔥 C Lock-Free Circular Queue Benchmark Completed!")
+//}
+
+// ✅ Run the benchmark in a high-priority task
+@main
+struct BenchmarkApp {
+    static func main() async {
+        print("🚀 Starting All Benchmarks...")
+        /*benchmark*/()
+    }
+}
