@@ -24,8 +24,8 @@
  }
  */
 
-@testable import MultitaskingEngine
 import Foundation
+@testable import MultitaskingEngine
 
 final class HensionOperationExecutable: BaseOperationExecutable, @unchecked Sendable {
     
