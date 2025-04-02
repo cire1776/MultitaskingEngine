@@ -23,6 +23,14 @@ public typealias Lint = (LintRunner) -> OperationState
 public typealias LintArray = [Lint]
 
 public struct LintTable {
+    public enum Category: Int {
+        case sequential
+        case concurrent
+        case loop
+        case guarded
+        // add other types as needed
+    }
+    
     public class Node {
         let lints: LintArray
         var counter: Int
@@ -34,6 +42,10 @@ public struct LintTable {
             self.previous = previous
         }
     }
+    
+    public let lints: LintArray
+    public var category: Category
+    public var identifier: Int
 }
 
 // MARK: - OperationExecutable Protocol
