@@ -22,6 +22,20 @@ enum ExecutionFlags {
 public typealias Lint = (LintRunner) -> OperationState
 public typealias LintArray = [Lint]
 
+public struct LintTable {
+    public class Node {
+        let lints: LintArray
+        var counter: Int
+        let previous: LintTable.Node?
+
+        init(lints: LintArray, counter: Int, previous: LintTable.Node?) {
+            self.lints = lints
+            self.counter = counter
+            self.previous = previous
+        }
+    }
+}
+
 // MARK: - OperationExecutable Protocol
 protocol OperationExecutable: AnyObject, Sendable {
     var operationName: String { get }
@@ -30,18 +44,6 @@ protocol OperationExecutable: AnyObject, Sendable {
     var startTime: ContinuousClock.Instant { get set }
     var lastProcessed: UInt { get set }
     func execute() -> OperationState
-}
-
-public class LintTableNode {
-    let lints: [Lint]
-    var counter: Int
-    let previous: LintTableNode?
-
-    init(lints: [Lint], counter: Int, previous: LintTableNode?) {
-        self.lints = lints
-        self.counter = counter
-        self.previous = previous
-    }
 }
 
 public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
@@ -54,7 +56,7 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     public var lints: LintArray = []
     public var lintCounter: Int = 0
 
-    public var previousTable: LintTableNode? = nil
+    public var previousTable: LintTable.Node? = nil
     
     init(name: String?=nil, lints: LintArray) {
         self.operationName = name ?? "~unnamed~"
@@ -103,7 +105,7 @@ public protocol LintRunner: AnyObject {
     var lints: [Lint] { get set }
     var lintCounter: Int { get set }
     
-    var previousTable: LintTableNode? { get set }
+    var previousTable: LintTable.Node? { get set }
 
     func pushSuboperation(_ newLints: [Lint])
     func popSuboperation()
@@ -112,7 +114,7 @@ public protocol LintRunner: AnyObject {
 extension LintRunner {
     @inline(__always)
     public func pushSuboperation(_ newLints: [Lint]) {
-        let node = LintTableNode(lints: self.lints, counter: self.lintCounter, previous: previousTable)
+        let node = LintTable.Node(lints: self.lints, counter: self.lintCounter, previous: previousTable)
         previousTable = node
         self.lints = newLints
         self.lintCounter = -1
@@ -133,7 +135,7 @@ public class ManualLintRunner: LintRunner {
     public var lints: [Lint]
     public var lintCounter: Int = 0
     
-    public var previousTable: LintTableNode? = nil
+    public var previousTable: LintTable.Node? = nil
     
     public init(provider: RunnableLintProvider) {
         self.lints = provider.lints
