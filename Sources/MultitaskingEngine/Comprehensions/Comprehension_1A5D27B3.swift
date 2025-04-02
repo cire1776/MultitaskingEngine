@@ -10,7 +10,7 @@ import Foundation
 final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
     let executionContext: StreamExecutionContext
     
-    var lints: LintArray = []
+    var table: LintTable
     
     private let readFiles: ReadFiles
     private let skipOutput: SkipFilter
@@ -33,12 +33,14 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
             executionContext: self.executionContext
         )
 
-        self.lints = [
+        self.table = LintTable(lints:[])
+        
+        self.table = LintTable(lints:[
             { _ in self.initialize() ; return .running },
             { _ in self.run() },
             { _ in self.finalize() ; return .completed },
             { _ in self.finalize() ; return .completed },
-        ]
+        ])
     }
     
     public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> ComprehensionInstance {

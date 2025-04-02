@@ -17,7 +17,7 @@ public enum EntityResult: Equatable {
 final class ComprehensionInstance: RunnableLintProvider, CustomStringConvertible {
     let blueprintName: String
     var executionContext: StreamExecutionContext
-    private(set) var lints: LintArray = []
+    private(set) var table: LintTable
     
     public var operationName: String {
         "\(blueprintName)__\(String(format: "%X", UUID().uuidString.hashValue))"
@@ -28,10 +28,10 @@ final class ComprehensionInstance: RunnableLintProvider, CustomStringConvertible
         
         self.executionContext = executionContext ?? StreamExecutionContext()
 
-        self.lints = blueprint.lints
+        self.table = blueprint.table
         
         if let preinitializationLint = preinitializationLint {
-            self.lints.insert(preinitializationLint, at: 0)
+            self.table.lints.insert(preinitializationLint, at: 0)
         }
     }
     

@@ -317,7 +317,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                     
                     // Create an Operation from the instance's lints.
                     // The Operation initializer takes the operation name, an execution context, and an array of lint closures.
-                    operation = Operation(name: "TestModelHension", lints: modelInstance.lints)
+                    operation = Operation(name: "TestModelHension", provider: modelInstance)
                 }
                 
                 it("executes the full lint chain on first run and correctly injects baseDir") {
@@ -394,7 +394,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 // Create an Operation from the instance's lint array.
                 operation = MultitaskingEngine.Operation(
                     name: "ModelHensionTest",
-                    lints: modelInstance.lints
+                    provider: modelInstance
                 )
             }
             

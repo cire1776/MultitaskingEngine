@@ -36,30 +36,30 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     var startTime: ContinuousClock.Instant = .now
     var lastProcessed: UInt = 0
 
-    public var lints: LintArray = []
+    public var table: LintTable
     public var lintCounter: Int = 0
 
-    public var previousTable: LintTable.Node? = nil
+    public var previousTableNode: LintTable.Node? = nil
     
-    init(name: String?=nil, lints: LintArray) {
+    init(name: String?=nil, provider: LintProvider) {
+        self.table = provider.table
         self.operationName = name ?? "~unnamed~"
-        self.lints = lints
     }
 
     func execute() -> OperationState {
-        execution: while lintCounter < lints.count {
+        execution: while lintCounter < table.lints.count {
             if executionFlags & ExecutionFlags.yield != 0 {
                 self.state = .running
                 return .running
             }
 
-            let result = lints[lintCounter](self)
+            let result = table.lints[lintCounter](self)
 
             switch result {
             case .firstRun, .running:
                 break
             case .completed:
-                if previousTable != nil {
+                if previousTableNode != nil {
                     popSuboperation()
                     break
                 }

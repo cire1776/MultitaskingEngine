@@ -11,8 +11,18 @@ import Nimble
 
 final class OperationTest: AsyncSpec {
     override class func spec() {
+        class DummyLintProvider: RunnableLintProvider {
+            var table: LintTable = LintTable(lints: [])
+            var operationName: String
+            
+            init(table: LintTable, operationName: String?=nil) {
+                self.table = table
+                self.operationName = operationName ?? "DummyOperation"
+            }
+        }
+        
         it("updates state to .completed after execution") {
-            let operation = MockOperation(operationName: "CompletingOperation", states: [.running, .completed])
+           let operation = MockOperation(operationName: "CompletingOperation", states: [.running, .completed])
             
             /// state is initial suspended
             expect(operation.state).to(equal(.suspended))
@@ -22,9 +32,7 @@ final class OperationTest: AsyncSpec {
             
             _ = operation.execute()
             
-            expect(operation.state).to(equal(.completed))  // ✅ Should now be .completed
-            
-            
+            expect(operation.state).to(equal(.completed))
         }
         
         final class Counter {
@@ -40,12 +48,12 @@ final class OperationTest: AsyncSpec {
                 let context = ExecutionContext()
                 let counter = Counter()
 
-                let operation = Operation(name: "", lints: [
+                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable(lints: [
                     { _ in counter.increment(); return .running },
                     { _ in counter.increment(); return .running },
                     { _ in counter.increment(); return .completed }
-                ])
-
+                ])))
+                
                 while operation.execute() == .running {}
 
                 expect(counter.value).to(equal(3))
@@ -55,11 +63,11 @@ final class OperationTest: AsyncSpec {
                 let context = ExecutionContext()
                 let counter = Counter()
 
-                let operation = Operation(lints: [
+                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable(lints: [
                     { _ in counter.increment(); return .running },
                     { _ in counter.increment(); return .completed },
                     { _ in counter.increment(); return .running }
-                ])
+                ])))
 
                 while operation.execute() == .running {}
 
@@ -68,10 +76,9 @@ final class OperationTest: AsyncSpec {
             
             it("propagates unusual execution event immediately") {
                 let context = ExecutionContext()
-                let operation = Operation(lints:
-                [
+                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable(lints: [
                     { _ in .unusualExecutionEvent(.exception("Boom")) }
-                ])
+                ])))
 
                 let result = operation.execute()
                 expect(result).to(equal(.unusualExecutionEvent(.exception("Boom"))))
@@ -81,7 +88,6 @@ final class OperationTest: AsyncSpec {
         describe("nested operation execution") {
             it("executes a nested lint array in correct order") {
                 var output: [String] = []
-                let context = ExecutionContext()
                 
                 // Define the nested lint sequence
                 let subLints: LintArray = [
@@ -90,15 +96,12 @@ final class OperationTest: AsyncSpec {
                 ]
                 
                 var operation: Operation! = nil  // placeholder for capture
-                operation = Operation(
-                    name: "top",
-                    lints: [
-                        { _ in output.append("A"); return .running },
-                        { _ in output.append("B"); return .running },
-                        { $0.pushSuboperation(subLints); return .running },
-                        { _ in output.append("E"); return .completed }
-                    ]
-                )
+                operation = Operation(name: "top", provider: DummyLintProvider(table: LintTable(lints: [
+                    { _ in output.append("A"); return .running },
+                    { _ in output.append("B"); return .running },
+                    { $0.pushSuboperation(lints: subLints); return .running },
+                    { _ in output.append("E"); return .completed }
+                ])))
                 
                 var result: OperationState = .running
                 var safety = 0
@@ -114,38 +117,29 @@ final class OperationTest: AsyncSpec {
             
             it("executes deeply nested operations") {
                 var output: [String] = []
-                let context = ExecutionContext()
+                _ = ExecutionContext()
 
                 // Sub-suboperation (deepest)
-                let subSub = Operation(
-                    name: "subsub",
-                    lints: [
-                        { _ in output.append("3"); return .running },
-                        { _ in output.append("4"); return .completed }
-                    ]
-                )
+                let subSub = Operation(name: "subSub", provider: DummyLintProvider(table: LintTable(lints: [
+                    { _ in output.append("3"); return .running },
+                    { _ in output.append("4"); return .completed }
+                ])))
 
                 // Suboperation (middle)
                 var top: Operation! = nil
                 var sub: Operation! = nil
-                sub = Operation(
-                    name: "sub",
-                    lints: [
-                        { _ in output.append("2"); return .running },
-                        { $0.pushSuboperation(subSub.lints); return .running },
-                        { _ in output.append("5"); return .completed }
-                    ]
-                )
+                sub = Operation(name: "sub", provider: DummyLintProvider(table: LintTable(lints: [
+                    { _ in output.append("2"); return .running },
+                    { $0.pushSuboperation(lints: subSub.table.lints); return .running },
+                    { _ in output.append("5"); return .completed }
+                ])))
                 
                 // Top-level operation
-                top = Operation(
-                    name: "top",
-                    lints: [
-                        { _ in output.append("1"); return .running },
-                        { $0.pushSuboperation(sub.lints); return .running },
-                        { _ in output.append("6"); return .completed }
-                    ]
-                )
+                top = Operation(name: "top", provider: DummyLintProvider(table: LintTable(lints: [
+                    { _ in output.append("1"); return .running },
+                    { $0.pushSuboperation(lints: sub.table.lints); return .running },
+                    { _ in output.append("6"); return .completed }
+                ])))
 
                 var result: OperationState = .running
                 var safety = 0
@@ -161,29 +155,24 @@ final class OperationTest: AsyncSpec {
         }
         
         describe("ManualLintRunner") {
-            class DummyLintProvider: RunnableLintProvider {
-                var lints: LintArray = []
-                var operationName: String = "DummyOperation"
-            }
-            
             var dummyProvider: DummyLintProvider!
             var runner: ManualLintRunner!
             
             beforeEach {
-                dummyProvider = DummyLintProvider()
+                dummyProvider = DummyLintProvider(table: LintTable(lints: []))
                 runner = ManualLintRunner(provider: dummyProvider)
             }
             
             context("with an empty lint array") {
                 it("returns .completed") {
-                    dummyProvider.lints = []
+                    dummyProvider.table.lints = []
                     expect(runner.execute()).to(equal(.completed))
                 }
             }
             
             context("when all lints return .running or .completed") {
                 beforeEach {
-                    dummyProvider.lints = [
+                    dummyProvider.table.lints = [
                         { _ in return .running },
                         { _ in return .completed }
                     ]
@@ -195,7 +184,7 @@ final class OperationTest: AsyncSpec {
             
             context("when a lint returns .suspended") {
                 beforeEach {
-                    dummyProvider.lints = [
+                    dummyProvider.table.lints = [
                         { _ in return .running },
                         { _ in return .suspended },
                         { _ in return .completed }
@@ -206,7 +195,7 @@ final class OperationTest: AsyncSpec {
             context("when a lint returns .unusualExecutionEvent") {
                 beforeEach {
                     let testError = UnusualExecutionEvent.exception("Test error")
-                    dummyProvider.lints = [
+                    dummyProvider.table.lints = [
                         { _ in return .running },
                         { _ in return .unusualExecutionEvent(testError) },
                         { _ in return .completed }

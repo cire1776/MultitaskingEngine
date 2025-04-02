@@ -18,70 +18,77 @@ public struct LintTable {
     }
     
     public class Node {
-        let lints: LintArray
+        let table: LintTable
         var counter: Int
         let previous: LintTable.Node?
 
-        init(lints: LintArray, counter: Int, previous: LintTable.Node?) {
-            self.lints = lints
+        init(table: LintTable, counter: Int, previous: LintTable.Node?) {
+            self.table = table
             self.counter = counter
             self.previous = previous
         }
     }
+   
+    init(lints: LintArray, category: Category = .sequential, identifier: Int=0) {
+        self.lints = lints
+        self.category = category
+        self.identifier = identifier
+    }
     
-    public let lints: LintArray
+    public var lints: LintArray
     public var category: Category
     public var identifier: Int
 }
 
 public protocol LintProvider {
-    var lints: LintArray { get }
+    var table: LintTable { get }
     var operationName: String { get }
 }
 
 public protocol LintRunner: AnyObject {
-    var lints: LintArray { get set }
+    var table: LintTable { get set }
     var lintCounter: Int { get set }
     
-    var previousTable: LintTable.Node? { get set }
+    var previousTableNode: LintTable.Node? { get set }
 
-    func pushSuboperation(_ newLints: LintArray, )
+    func pushSuboperation(lints: LintArray, category: LintTable.Category, identifier: Int)
     func popSuboperation()
 }
 
 extension LintRunner {
     @inline(__always)
-    public func pushSuboperation(_ newLints: LintArray) {
-        let node = LintTable.Node(lints: self.lints, counter: self.lintCounter, previous: previousTable)
-        previousTable = node
-        self.lints = newLints
+    public func pushSuboperation(lints: LintArray, category: LintTable.Category = .sequential, identifier: Int=0) {
+        let table = LintTable(lints: lints, category: category, identifier: identifier)
+        let node = LintTable.Node(table: self.table, counter: self.lintCounter, previous: previousTableNode)
+        self.table = table
+        previousTableNode = node
         self.lintCounter = -1
     }
 
     @inline(__always)
     public func popSuboperation() {
-        guard let previous = previousTable else { return }
-        self.lints = previous.lints
+        guard let previous = previousTableNode else { return }
+        self.table = previous.table
         self.lintCounter = previous.counter
-        self.previousTable = previous.previous
+        self.previousTableNode = previous.previous
     }
 }
 
 public protocol RunnableLintProvider: LintProvider {  }
 
 public class ManualLintRunner: LintRunner {
-    public var lints: LintArray
+    public var table: LintTable
     public var lintCounter: Int = 0
     
-    public var previousTable: LintTable.Node? = nil
+    public var previousTableNode: LintTable.Node? = nil
     
     public init(provider: RunnableLintProvider) {
-        self.lints = provider.lints
+        self.table = provider.table
     }
     
     public func execute() -> OperationState {
-        execution: while lintCounter < lints.count {
-            let result = lints[lintCounter](self)
+        execution: while lintCounter < table.lints.count {
+            let result = table.lints[lintCounter](self)
             switch result {
             case .running:
                 // Continue to next lint.
