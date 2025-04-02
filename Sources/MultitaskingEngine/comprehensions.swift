@@ -17,7 +17,7 @@ public enum EntityResult: Equatable {
 final class ComprehensionInstance: RunnableLintProvider, CustomStringConvertible {
     let blueprintName: String
     var executionContext: StreamExecutionContext
-    private(set) var lints: [Lint] = []
+    private(set) var lints: LintArray = []
     
     public var operationName: String {
         "\(blueprintName)__\(String(format: "%X", UUID().uuidString.hashValue))"

@@ -84,7 +84,7 @@ final class OperationTest: AsyncSpec {
                 let context = ExecutionContext()
                 
                 // Define the nested lint sequence
-                let subLints: [Lint] = [
+                let subLints: LintArray = [
                     { _ in output.append("C"); return .running },
                     { _ in output.append("D"); return .completed }
                 ]
@@ -162,7 +162,7 @@ final class OperationTest: AsyncSpec {
         
         describe("ManualLintRunner") {
             class DummyLintProvider: RunnableLintProvider {
-                var lints: [Lint] = []
+                var lints: LintArray = []
                 var operationName: String = "DummyOperation"
             }
             

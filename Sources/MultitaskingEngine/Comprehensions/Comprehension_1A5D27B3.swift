@@ -10,7 +10,7 @@ import Foundation
 final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
     let executionContext: StreamExecutionContext
     
-    var lints: [Lint] = []
+    var lints: LintArray = []
     
     private let readFiles: ReadFiles
     private let skipOutput: SkipFilter

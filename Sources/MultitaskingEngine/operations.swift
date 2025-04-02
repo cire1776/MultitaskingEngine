@@ -20,6 +20,7 @@ enum ExecutionFlags {
 }
 
 public typealias Lint = (LintRunner) -> OperationState
+public typealias LintArray = [Lint]
 
 // MARK: - OperationExecutable Protocol
 protocol OperationExecutable: AnyObject, Sendable {
@@ -50,12 +51,12 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     var startTime: ContinuousClock.Instant = .now
     var lastProcessed: UInt = 0
 
-    public var lints: [Lint] = []
+    public var lints: LintArray = []
     public var lintCounter: Int = 0
 
     public var previousTable: LintTableNode? = nil
     
-    init(name: String?=nil, lints: [Lint]) {
+    init(name: String?=nil, lints: LintArray) {
         self.operationName = name ?? "~unnamed~"
         self.lints = lints
     }
