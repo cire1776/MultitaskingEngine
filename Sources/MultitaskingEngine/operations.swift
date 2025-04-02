@@ -5,7 +5,7 @@ public enum OperationState: Equatable {
     case initialization
     case firstRun
     case running
-    case suspended  // yield
+    case suspended          // yield
     case waitingForReturn   // ;
     case completed          // .
     case unusualExecutionEvent(UnusualExecutionEvent)
@@ -25,7 +25,7 @@ public typealias LintArray = [Lint]
 // MARK: - OperationExecutable Protocol
 protocol OperationExecutable: AnyObject, Sendable {
     var operationName: String { get }
-    var executionFlags: UInt64 { get set }  // ✅ Flags for execution control
+    var executionFlags: UInt64 { get set }  // Flags for execution control
     var state: OperationState { get set }
     var startTime: ContinuousClock.Instant { get set }
     var lastProcessed: UInt { get set }
