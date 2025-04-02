@@ -46,14 +46,7 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
     public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> ComprehensionInstance {
         return ComprehensionInstance(blueprint: self,preinitializationLint: preinitialization_lint, executionContext: executionContext)
     }
-//
-//    @inline(__always)
-//    private func pre_initialize_streams() {
-//        print("preintialization stream")
-//        // Inject compile-time constant baseDir into the execution context.
-//        executionContext["baseDir"] = .success("/tmp/model-hension")
-//    }
-//    
+    
     @inline(__always)
     private func initialize() {
         print("initialize")
