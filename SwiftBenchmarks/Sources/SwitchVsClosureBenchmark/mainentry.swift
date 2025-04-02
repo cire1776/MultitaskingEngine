@@ -5,6 +5,38 @@ import Shared
 
 let iterations = 1_000_000  // ✅ Global iteration count
 
+final class Counter {
+    var value: Int = 0
+
+    @inline(never)
+    func makeCapturingClosures() -> [() -> Int] {
+        return (1...5).map { i in
+            return {
+                self.value += i
+                return i
+            }
+        }
+    }
+
+    @inline(never)
+    func makeUnownedCapturingClosures() -> [() -> Int] {
+        return (1...5).map { i in
+            return { [unowned self] in
+                self.value += i
+                return i
+            }
+        }
+    }
+}
+
+final class CounterA {
+    var value: Int = 0
+
+    func reset() {
+        value = 0
+    }
+}
+
 func benchmark() {
     print("🚀 Running Execution Benchmarks with \(formatNumber(Double(iterations))) iterations...")
 
@@ -20,6 +52,54 @@ func benchmark() {
     }
     print("🔥 Final Closure Result:", formatNumber(Double(closureResult)))
 
+    let externalCounter = CounterA()
+     let counterInstance = CounterA()
+
+     // 1️⃣ External Capture (outside closure)
+     let externalClosures: [() -> Int] = [
+         { externalCounter.value += 1; return 1 },
+         { externalCounter.value += 2; return 2 },
+         { externalCounter.value += 3; return 3 },
+         { externalCounter.value += 4; return 4 },
+         { externalCounter.value += 5; return 5 }
+     ]
+
+     var result = 0
+     externalCounter.reset()
+     measureExecutionTime(label: "External Counter Capturing", iterations: iterations) {
+         for i in 0..<iterations {
+             result += externalClosures[i % externalClosures.count]()
+         }
+     }
+     print("🔥 Final External Counter Result: \(result)")
+     print("🔥 External Counter.value: \(externalCounter.value)")
+     print("")
+
+    // ✅ Closure (Capturing self)
+    let counter1 = Counter()
+    let capturingClosures = counter1.makeCapturingClosures()
+    var capturingResult = 0
+
+    measureExecutionTime(label: "Closure Capturing self", iterations: iterations) {
+        for i in 0..<iterations {
+            capturingResult += capturingClosures[i % capturingClosures.count]()
+        }
+    }
+    print("🔥 Final Capturing Result:", capturingResult)
+    blackhole(counter1.value)
+
+    let counter2 = Counter()
+    let unownedClosures = counter2.makeUnownedCapturingClosures()
+    var unownedResult = 0
+
+    measureExecutionTime(label: "Closure Capturing [unowned self]", iterations: iterations) {
+        for i in 0..<iterations {
+            unownedResult += unownedClosures[i % unownedClosures.count]()
+        }
+    }
+    print("🔥 Final Unowned Capturing Result:", unownedResult)
+    blackhole(counter2.value)
+              
     // ✅ Function Pointer Lookup Benchmark
     func op1() -> Int { return 1 }
     func op2() -> Int { return 2 }

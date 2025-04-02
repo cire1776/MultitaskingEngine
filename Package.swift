@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "MultitaskingEngine",
     platforms: [
-        .macOS(.v15) // ✅ Set to macOS 12 to avoid 15.0 restriction issues
+        .macOS(.v15)
     ],
     products: [
         .library(
@@ -17,7 +17,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.0"),
         .package(url: "https://github.com/Quick/Quick.git", from: "7.0.0"),
         .package(url: "https://github.com/Quick/Nimble.git", exact: "13.0.0"),
-        .package(name: "ULangLib", path: "../")  // ✅ Ensure this path is correct
+//        .package(name: "ULangLib", path: "../")
     ],
     targets: [
         .target(
@@ -47,12 +47,14 @@ let package = Package(
                 "Quick",
                 "Nimble",
                 "TestHelpers",
-                "PointerUtilities",
-                "ULangLib"
+                "PointerUtilities"
             ],
-            path: "Tests/MultitaskingEngineTests", linkerSettings: [
+            path: "Tests/MultitaskingEngineTests",
+//            sources: [
+//                "Enitities",
+//            ],
+            linkerSettings: [
                 .linkedFramework("XCTest") // ✅ Explicitly link XCTest
-            ]
-        ),
+            ],        ),
     ]
 )

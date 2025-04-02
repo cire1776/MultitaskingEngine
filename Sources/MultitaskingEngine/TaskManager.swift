@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Actor to manage tasks
+
 class TaskManager {
     private var taskQueue: [TaskExecutable] = []
 

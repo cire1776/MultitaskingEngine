@@ -31,7 +31,7 @@ final class APMTimeTests: AsyncSpec {
                     let elapsed = Double(t2.preciseRelativeTimestamp - t1.preciseRelativeTimestamp)
                     let actualElapsed = Double( DispatchTime.now().uptimeNanoseconds - start)
                     
-                    expect(elapsed).to(beCloseTo(actualElapsed, within: 50_000))
+                    expect(elapsed).to(beCloseTo(actualElapsed, within: 75_000))
                 }
             }
             

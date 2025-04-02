@@ -13,7 +13,6 @@ import Nimble
 class operationManagerTests: AsyncSpec {
     override class func spec() {
         describe("OperationManager") {
-            
             it("executes normally") {
                 let operation = MockOperation(operationName: "NormalOperation", states: [.running])
                 
@@ -40,10 +39,10 @@ class operationManagerTests: AsyncSpec {
             }
             
             it("returns a warning message") {
-                let operation = MockOperation(operationName: "WarningOperation", states: [.firstRun, .warning("Low disk space"), .completed])
+                let operation = MockOperation(operationName: "WarningOperation", states: [.firstRun, .unusualExecutionEvent(.warning("Low disk space")), .completed])
                 
                 expect(operation.execute()).to(equal(.firstRun))
-                expect(operation.execute()).to(equal(.warning("Low disk space")))
+                expect(operation.execute()).to(equal(.unusualExecutionEvent(.warning("Low disk space"))))
                 expect(operation.execute()).to(equal(.completed))
             }
             
@@ -53,7 +52,7 @@ class operationManagerTests: AsyncSpec {
                 
                 let operation = MockOperation(operationName: "FatalExceptionOperation", states: [
                     .firstRun,
-                    .exception("Critical error"),
+                    .unusualExecutionEvent(.exception("Critical error")),
                     .running,
                     .completed
                 ])
@@ -68,10 +67,10 @@ class operationManagerTests: AsyncSpec {
             }
             
             it("aborts execution with a message") {
-                let operation = MockOperation(operationName: "AbortOperation", states: [.firstRun, .abort("Critical system failure")])
+                let operation = MockOperation(operationName: "AbortOperation", states: [.firstRun, .unusualExecutionEvent(.abort("Critical system failure"))])
                 
                 expect(operation.execute()).to(equal(.firstRun))
-                expect(operation.execute()).to(equal(.abort("Critical system failure")))
+                expect(operation.execute()).to(equal(.unusualExecutionEvent(.abort("Critical system failure"))))
             }
             
             it("OM adds operations to OS when they start") {

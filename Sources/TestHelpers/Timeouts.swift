@@ -47,7 +47,7 @@ public func whileTimeout(
 //    var conditionTask: Task<Bool,Never>!=nil
     let status = Status()
     
-    // ✅ Define tasks BEFORE adding them to the group
+    // Define tasks BEFORE adding them to the group
     let timeoutTask = Task {
         let deadline = Date().addingTimeInterval(seconds)
         while Date().timeIntervalSince(deadline) < 0  {
@@ -56,14 +56,15 @@ public func whileTimeout(
             try? await Task.sleep(nanoseconds: 5_000_000) // ✅ Reduce CPU load
         }
         await status.stop()
-        return false // ✅ Timeout reached
+        return false // Timeout reached
     }
 
     let conditionTask = Task {
-        while !Task.isCancelled {  // ✅ Ensure cancellation exits the loop
+        while !Task.isCancelled {
             if await status.stopped { break }
             if await condition() {
-                return true // ✅ Condition met, return early
+                await status.stop()
+                return true // Condition met, return early
             }
             await Task.yield() // ✅ Prevent blocking
         }
@@ -71,14 +72,28 @@ public func whileTimeout(
         return false // ✅ If cancelled, return false
     }
 
-    // ✅ Run both tasks in a TaskGroup
-    let didFinish = await withTaskGroup(of: Bool.self) { group in
+    // Run both tasks in a TaskGroup
+//    let didFinish = await withTaskGroup(of: Bool.self) { group in
+//        group.addTask { await conditionTask.value }
+//        group.addTask { await timeoutTask.value }
+//        
+//        
+//        return await group.reduce(false) { $0 || $1 } // Returns first `true`
+//    }
+    
+    let didFinish = await withTaskGroup(of: Bool.self) { group -> Bool in
         group.addTask { await conditionTask.value }
         group.addTask { await timeoutTask.value }
         
-        
-        return await group.reduce(false) { $0 || $1 } // ✅ Returns first `true`
-        await status.stop()
+//        var result = false
+//        for await value in group {
+//            if value {
+//                result = true
+//                group.cancelAll()  // Cancel remaining tasks once a true is encountered.
+//                break
+//            }
+//        }
+        return true
     }
 
     // ✅ Explicitly cancel both tasks after determining result

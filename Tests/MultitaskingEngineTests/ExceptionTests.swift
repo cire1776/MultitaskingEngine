@@ -18,7 +18,7 @@ final class ExceptionTests: AsyncSpec {
             
             let operation = MockOperation(operationName: "RecoverableOperation", states: [
                 .firstRun,
-                .exception("non-critical issue"),  // Default handler should resume
+                .unusualExecutionEvent(.exception("non-critical issue")),  // Default handler should resume
                 .running,
                 .completed
             ])
@@ -44,7 +44,7 @@ final class ExceptionTests: AsyncSpec {
             
             let operation = MockOperation(operationName: "FatalOperation", states: [
                 .firstRun,
-                .exception("critical failure"),  // Default handler should stop operation
+                .unusualExecutionEvent(.exception("critical failure")),  // Default handler should stop operation
                 .running,
                 .completed
             ])
@@ -70,7 +70,7 @@ final class ExceptionTests: AsyncSpec {
             
             let operation = MockOperation(operationName: "ULangSpecialOperation", states: [
                 .firstRun,
-                .exception("ULang-recoverable"),  // ULang handler should allow resumption
+                .unusualExecutionEvent(.exception("ULang-recoverable")),  // ULang handler should allow resumption
                 .running,
                 .completed
             ])
@@ -92,10 +92,14 @@ final class ExceptionTests: AsyncSpec {
         }
         
         it("throws a returnable exception and continues") {
-            let operation = MockOperation(operationName: "ReturnableExceptionOperation", states: [.firstRun, .exception("Minor failure @return"), .completed])
+            let operation = MockOperation(operationName: "ReturnableExceptionOperation", states: [
+                .firstRun,
+                .unusualExecutionEvent(.exception("Minor failure @return")),
+                .completed
+            ])
 
             expect(operation.execute()).to(equal(.firstRun))
-            expect(operation.execute()).to(equal(.exception("Minor failure @return")))  // Exception occurs
+            expect(operation.execute()).to(equal(.unusualExecutionEvent(.exception("Minor failure @return"))))  // Exception occurs
             expect(operation.execute()).to(equal(.completed))  // operation can still finish
         }
 

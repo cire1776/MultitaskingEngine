@@ -8,23 +8,28 @@
 import Foundation
 
 final class ReadFiles {
-    private let basePath: String
-    private let executionContext: ThreadExecutionContext
+    private var basePath: String = "."
+    let filenameStream: String
+    let pathnameStream: String
+    private let executionContext: StreamExecutionContext
     private var enumerator: FileManager.DirectoryEnumerator?
 
-    init(basePath: String, executionContext: ThreadExecutionContext) {
-        self.basePath = basePath
+    init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext) {
+        self.filenameStream = aliasMap["filename"] ?? "filename"
+        self.pathnameStream = aliasMap["pathname"] ?? "pathname"
         self.executionContext = executionContext
     }
 
     func initialize() {
+        self.basePath = (try? executionContext["baseDir"].get() as? String) ?? self.basePath
         enumerator = FileManager.default.enumerator(atPath: basePath)
     }
 
     func next() -> EntityResult {
         guard let file = enumerator?.nextObject() as? String else { return .eof }
         
-        executionContext.setStream(setter: ("raw_filename", file))
+        executionContext[filenameStream] = .success(file)
+        executionContext[pathnameStream] = .success("\(self.basePath)/\(file)")
         return .proceed
     }
 

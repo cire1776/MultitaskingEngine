@@ -34,7 +34,17 @@ let package = Package(
             sources: ["mainentry.swift"]
         ),
 
-        // ✅ Variable Lookup Benchmark (Uses `Shared`)
+        .executableTarget(
+            name: "ResetStreamVsOptions",
+            dependencies: [
+              "CQueue", "Shared",
+              .product(name: "Atomics", package: "swift-atomics")
+            ],
+            path: "Sources/ResetStreamVsOptions",
+            sources: ["streamEntry.swift"]
+        ),
+
+       // ✅ Variable Lookup Benchmark (Uses `Shared`)
         .executableTarget(
             name: "VariableLookupBenchmark",
             dependencies: [
@@ -43,6 +53,18 @@ let package = Package(
             ],
             path: "Sources/VariableLookupBenchmark",
             sources: ["main.swift"]
+        ),
+
+
+        // ✅ Placeholder for Additional Benchmarks
+        .executableTarget(
+            name: "SliceVsIndexingBenchmark",
+            dependencies: [
+                "CQueue", "CVariableStore", "Shared",
+                .product(name: "Atomics", package: "swift-atomics")
+            ],
+            path: "Sources/SliceVsIndexingBenchmark",
+            sources: ["sliceentry.swift"]
         ),
 
         // ✅ Placeholder for Additional Benchmarks
@@ -67,7 +89,6 @@ let package = Package(
             sources: ["c_variable_store_bridge.c", "c_variable_store.c"],
             publicHeadersPath: "include"
         ),
-
         // ✅ Unit Tests
         .testTarget(
             name: "SwiftBenchmarksTests",

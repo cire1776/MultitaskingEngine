@@ -13,12 +13,12 @@ import Nimble
 final class SkipFilterTests: AsyncSpec {
     override class func spec() {
         describe("SkipFilter") {
-            var executionContext: ThreadExecutionContext!
+            var executionContext: StreamExecutionContext!
             var skipFilter: SkipFilter!
 
             beforeEach {
-                executionContext = ThreadExecutionContext(uuesHandler: DefaultUUESHandler())
-                executionContext.setStream(setter: ("raw_filename", "file_to_skip.txt"))
+                executionContext = StreamExecutionContext()
+                executionContext["raw_filename"] = .success("file_to_skip.txt")
                 skipFilter = SkipFilter(valuesToSkip: ["file_to_skip.txt"], stream: "raw_filename", executionContext: executionContext)
             }
 
@@ -27,7 +27,7 @@ final class SkipFilterTests: AsyncSpec {
             }
 
             it("should proceed when the file is not excluded") {
-                executionContext.setStream(setter: ("raw_filename", "allowed_file.txt"))
+                executionContext["raw_filename"] = .success("allowed_file.txt")
                 expect(skipFilter.include()).to(equal(.proceed))
             }
         }

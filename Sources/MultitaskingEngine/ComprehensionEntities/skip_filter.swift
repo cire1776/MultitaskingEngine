@@ -8,9 +8,9 @@
 struct SkipFilter {
     private let valuesToSkip: Set<String>
     private let stream: String
-    private let executionContext: ThreadExecutionContext
+    private let executionContext: StreamExecutionContext
 
-    init(valuesToSkip: [String], stream: String, executionContext: ThreadExecutionContext) {
+    init(valuesToSkip: [String], stream: String, executionContext: StreamExecutionContext) {
         self.valuesToSkip = Set(valuesToSkip)
         self.stream = stream
         self.executionContext = executionContext

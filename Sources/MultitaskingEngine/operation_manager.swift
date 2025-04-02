@@ -161,7 +161,7 @@ actor OperationManager {
             case .running:
                  _ = await addOperation(operation)
 
-            case .exception(let message):
+        case let .unusualExecutionEvent(.exception(message)):
                 let shouldResume = await exceptionHandler.handleException(operation, message: message)
                 if shouldResume {
                     print("🔄 Resuming operation: \(operation.operationName)")
@@ -169,11 +169,14 @@ actor OperationManager {
                     nextCycleQueue.append(operation)  // ✅ Now safely handled in addOperation()
                 }
 
-            case .completed, .abort:
-                print("🏁 Operation \(operation.operationName) finished execution. No further action.")
+        case let .unusualExecutionEvent(.abort(message)):
+            print("🏁 Operation \(operation.operationName) aborted execution. No further action.")
+            
+        case .completed:
+            print("🏁 Operation \(operation.operationName) finished execution. No further action.")
 
-            default:
-                fatalError("🔥 Unknown Operation State: \(result)")
+        default:
+            fatalError("🔥 Unknown Operation State: \(result)")
         }
     }
 

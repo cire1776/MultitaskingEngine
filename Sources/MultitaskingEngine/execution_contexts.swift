@@ -6,210 +6,206 @@ enum ExecutionContextError: Error, Equatable {
     case variableNotFound(String)
     case indexOutOfRange(UInt)
     case invalidVariableType
+    case staleEphemeralVariable
 }
 
 public typealias StreamSetter = (String, Any?)
 
-public enum EntityResult: Equatable {
-    case proceed
-    case notAvailable
-    case eof
-    case warning(String)
-    case exception(String)
-    case abort(String)
-}
-
 enum VariableStorage {
-    case value(Any?)   // ✅ Supports `nil` naturally
-    case index(Int)    // ✅ References an index in `variables`
+    case value(Any?)
+    case ephemeral(Any?, tick: Int)
+    case index(Int)
 }
 
-/// ✅ Read-Only Execution Context Protocol (REC)
-protocol ReadExecutionContext {
-    subscript(index: UInt) -> Result<Any?, ExecutionContextError> { get }
-    subscript(name: String) -> Result<Any?, ExecutionContextError> { get }
+public protocol HeapExecutionContext: AnyObject {
+    var operation: Operation? { get }
     
-    func containsKey(_ key: String) -> Bool
-}
-
-/// ✅ Execution Context Protocol (EC)
-protocol ExecutionContext: ReadExecutionContext {
-    init()
-    subscript(index: UInt) -> Result<Any?, ExecutionContextError> { get set }
-    subscript(name: String) -> Result<Any?, ExecutionContextError> { get set }
-    func reset()
+    var pendingEvent: UnusualExecutionEvent? { get set }
+    var shouldYield: Bool { get set }
     
-    func setStream(setter: StreamSetter)
-    func setStream(setters: [StreamSetter])
-
     func triggerUnusualEvent(_ event: UnusualExecutionEvent)
 }
 
-/// ✅ Execution Context Manager Protocol
-protocol ExecutionContextManaging {
-    associatedtype ECType: ExecutionContext
+extension HeapExecutionContext {
+    public func triggerUnusualEvent(_ event: UnusualExecutionEvent) {
+        // Store the event, mark yield requested, etc.
+        self.pendingEvent = event
+        self.shouldYield = true
+    }
 
-    static var contextTable: [UnsafeRawPointer: ECType] { get set }
-    static var lock: APMLock { get }
-    static var activeContext: UnsafeRawPointer? { get set }
-
-    @inline(__always) static func registerContext(for object: AnyObject)
-    @inline(__always) static func setActiveContext(for object: AnyObject)
-    static var current: ECType? { get }
 }
 
-extension ExecutionContextManaging {
-    @inline(__always)
-    static func registerContext(for object: AnyObject) {
-        let objectPtr = Unmanaged.passUnretained(object).toOpaque()
-        let newContext = ECType()
+enum EC {
+    protocol Readable where Self: HeapExecutionContext {
+        subscript(_ name: String) -> Result<Any?, ExecutionContextError> { get }
         
-        lock.lock()
-        contextTable[objectPtr] = newContext
-        lock.unlock()
+        func containsKey(_ name: String) -> Bool
+    }
+    
+    protocol Writable: EC.Readable {
+        subscript(_ name: String) -> Result<Any?, ExecutionContextError> { get set }
         
-        setActiveContext(with: objectPtr)
+        func remove(_ name: String)
     }
 
-    @inline(__always)
-    static func setActiveContext(with objectPtr: UnsafeRawPointer) {
-        lock.lock()
-        activeContext = objectPtr
-        lock.unlock()
-    }
-    
-    @inline(__always)
-    static func setActiveContext(for object: AnyObject) {
-        setActiveContext(with: Unmanaged.passUnretained(object).toOpaque())
-    }
-    
-    @inline(__always)
-    static var current: ECType? {
-        lock.lock()
-        defer { lock.unlock() }
-        return activeContext.flatMap { contextTable[$0] }
+    protocol Streaming: EC.Writable {
+       var tick: Int { get }
+
+       func ensure(_ name: String, defaultValue: Any?)
+        
+       func endTick()
     }
 }
 
-final class ThreadExecutionContext: ExecutionContext, ExecutionContextManaging, @unchecked Sendable {
-    typealias ECType = ThreadExecutionContext
+public class ExecutionContext: HeapExecutionContext, EC.Writable {
+    public var operation: Operation? = nil
     
-    nonisolated(unsafe) static var contextTable: [UnsafeRawPointer: ThreadExecutionContext] = [:]
-    nonisolated(unsafe) static let lock = APMLock()
-    nonisolated(unsafe) static var activeContext: UnsafeRawPointer?
+    public var pendingEvent: UnusualExecutionEvent? = nil
+    public var shouldYield: Bool = false
+    
+    private var dynamicVariables: [String: VariableStorage] = [:]
+    private let dynamicLock = NSLock()
 
-    private let bufferLock = APMLock()
-    private let dynamicLock = APMLock()
-    var dynamicVariables: [String: VariableStorage] = [:]
-    var variables: [UnsafeRawPointer?]
-
-    private let uuesHandler: any UUESHandling
-    
-    required init() {
-        self.variables = Array(repeating: nil, count: 1000)
-        self.uuesHandler = DefaultUUESHandler()
-    }
-    
-    required init(uuesHandler: UUESHandling? = nil) {
-        self.variables = Array(repeating: nil, count: 1000)
-        self.uuesHandler = uuesHandler ?? DefaultUUESHandler()
-    }
-
-    public func containsKey(_ key: String) -> Bool {
-        dynamicLock.lock()
-        defer { dynamicLock.unlock() }
-        return dynamicVariables[key] != nil // allegedly faster than containsKey
-    }
-    
-    subscript(index: UInt) -> Result<Any?, ExecutionContextError> {
+    subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {
-               bufferLock.lock()
-               defer { bufferLock.unlock() }
+            dynamicLock.lock()
+            defer { dynamicLock.unlock() }
 
-               guard index < variables.count else {
-                   return .failure(.indexOutOfRange(index))
-               }
+            guard let storage = dynamicVariables[name] else {
+                return .success(nil) // ✅ Variable not set yet
+            }
 
-               if let rawPointer = variables[Int(index)] {
-                   // ✅ Safely retrieve the object using Unmanaged
-                   let object = Unmanaged<AnyObject>.fromOpaque(rawPointer).takeUnretainedValue()
-                   return .success(object)
-               }
+            switch storage {
+            case let .value(value):
+                return .success(value)
+            case .index, .ephemeral(_,_):
+                return .failure(.invalidVariableType)
+            }
+        }
 
-               return .success(nil) // ✅ Properly handle `nil` cases
-           }
-        set(newValue) {
-            bufferLock.lock()
-            defer { bufferLock.unlock() }
-            
-            guard index < variables.count else { return }
-            
-            if let value = try? newValue.get() {
-                variables[Int(index)] = UnsafeRawPointer(Unmanaged.passUnretained(value as AnyObject).toOpaque())
-            } else {
-                variables[Int(index)] = nil
+        set {
+            dynamicLock.lock()
+            defer { dynamicLock.unlock() }
+
+            switch newValue {
+            case .success(let value):
+                // ✅ Store even if value is nil
+                dynamicVariables[name] = .value(value)
+            case .failure:
+                // ✅ Only failure removes the variable
+                dynamicVariables.removeValue(forKey: name)
             }
         }
     }
+    
+    func containsKey(_ name: String) -> Bool {
+        dynamicLock.lock()
+        defer { dynamicLock.unlock() }
+        return dynamicVariables[name] != nil
+    }
+    
+    func remove(_ name: String) {
+        dynamicLock.lock()
+        defer { dynamicLock.unlock() }
+        dynamicVariables.removeValue(forKey: name)
+    }
+}
+
+public class StreamExecutionContext: HeapExecutionContext, EC.Streaming {
+    public var operation: Operation? = nil
+    
+    public var pendingEvent: UnusualExecutionEvent?
+    public var shouldYield: Bool = false
+    
+    public private(set) var tick: Int = 1
+    
+    private var dynamicVariables: [String: VariableStorage] = [:]
+    private let dynamicLock = NSLock()
 
     subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {
             dynamicLock.lock()
             defer { dynamicLock.unlock() }
             
-            if let stored = dynamicVariables[name] {
-                switch stored {
-                case .value(let value):
-                    return .success(value) // ✅ Now correctly supports `nil`
-                case .index(let i):
-                    return variables.indices.contains(i)
-                        ? .success(variables[i])
-                    : .failure(.indexOutOfRange(UInt(i)))
-                }
+            guard let storage = dynamicVariables[name] else {
+                return .success(nil) // ✅ Variable not set yet
             }
-
-            if let value = dynamicVariables[name] {
+            
+            switch storage {
+            case let .ephemeral(value, storedTick) where storedTick == self.tick:
                 return .success(value)
+            case .ephemeral(_, _):
+                return .failure(.staleEphemeralVariable)
+            case let .value(value):
+                return .success(value)
+            case .index:
+                return .failure(.invalidVariableType)
             }
-
-            return .failure(.variableNotFound(name))
         }
+        
         set {
             dynamicLock.lock()
             defer { dynamicLock.unlock() }
-
-            do {
-                let value = try newValue.get()
-                dynamicVariables[name] = .value(value) // ✅ Ensures `nil` is stored, not removed
-            } catch {
-                dynamicVariables.removeValue(forKey: name) // ✅ Only removes when explicitly invalid
+            
+            switch newValue {
+            case .success(let value):
+                if let existing = dynamicVariables[name] {
+                    switch existing {
+                    case .value:
+                        dynamicVariables[name] = .value(value)
+                        break
+                    case .index(_):
+                        // currently, index casnnot be written this way.
+                        break
+                    default:
+                        // ✅ Overwrite non-persistent value with new ephemeral
+                        dynamicVariables[name] = .ephemeral(value, tick: tick)
+                    }
+                } else {
+                    // ✅ No existing entry—safe to write ephemeral
+                    dynamicVariables[name] = .ephemeral(value, tick: tick)
+                }
+                
+            case .failure:
+                // ✅ Only remove if it’s not .value
+                if let existing = dynamicVariables[name] {
+                    switch existing {
+                    case .value:
+                        // ✅ Keep persistent value untouched
+                        break
+                    default:
+                        // ✅ Remove ephemeral or other dynamic content
+                        dynamicVariables.removeValue(forKey: name)
+                    }
+                }
             }
         }
     }
-    
-    func reset() {
-        bufferLock.lock()
-        dynamicLock.lock()
-        defer {
-            bufferLock.unlock()
-            dynamicLock.unlock()
-        }
-        dynamicVariables.removeAll()
-        variables = Array(repeating: nil, count: variables.count)
-    }
-    
-    func setStream(setter: StreamSetter) {
-        self[setter.0] = .success(setter.1)
-    }
-    
-    func setStream(setters: [StreamSetter]) {
-        for setter in setters {
-            self[setter.0] = .success(setter.1)
-        }
-    }
 
-    func triggerUnusualEvent(_ event: UnusualExecutionEvent) {
-        print("🔥 UUES Triggered: \(event)")
-        uuesHandler.handleUnusualEvent(event)
+    func containsKey(_ name: String) -> Bool {
+        dynamicLock.lock()
+        defer { dynamicLock.unlock() }
+        return dynamicVariables[name] != nil
+    }
+    
+    func remove(_ name: String) {
+        dynamicLock.lock()
+        defer { dynamicLock.unlock() }
+        dynamicVariables.removeValue(forKey: name)
+    }
+    
+    func ensure(_ name: String, defaultValue: Any?) {
+        dynamicLock.lock()
+        defer { dynamicLock.unlock() }
+
+        guard dynamicVariables[name] == nil else {
+            return  // ✅ Don't override existing values
+        }
+
+        dynamicVariables[name] = .value(defaultValue)
+    }
+    
+    func endTick() {
+        self.tick += 1
     }
 }

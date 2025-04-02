@@ -34,7 +34,7 @@ final class OperationSchedulerTests: AsyncSpec {
 
                 let activeOp = MockOperation(operationName: "ActiveOperation", states: [.suspended, .running, .running])
                 let completedOp = MockOperation(operationName: "CompletedOperation", states: [.suspended, .running, .completed])
-                let abortedOp = MockOperation(operationName: "AbortedOperation", states: [.abort("Fatal error")])
+                let abortedOp = MockOperation(operationName: "AbortedOperation", states: [.unusualExecutionEvent(.abort("Fatal error"))])
                 let suspendedOp = MockOperation(operationName: "SuspendedOperation", states: [.suspended])
 
                 _ = await scheduler.addOperation(activeOp)

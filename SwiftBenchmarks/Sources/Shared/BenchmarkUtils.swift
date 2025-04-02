@@ -27,3 +27,7 @@ public func formatNumber(_ number: Double) -> String {
     return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
 }
 
+@inline(never)
+public func blackhole<T>(_ value: T) {
+    _ = value
+}

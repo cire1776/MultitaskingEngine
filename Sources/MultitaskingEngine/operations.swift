@@ -8,16 +8,18 @@ public enum OperationState: Equatable {
     case suspended  // yield
     case waitingForReturn   // ;
     case completed          // .
-    case warning  (String)  // ;
-    case exception(String)  // may return depending upon the exception handler
-    case abort    (String)  // !
+    case unusualExecutionEvent(UnusualExecutionEvent)
+    // may  return depending upon the event
 }
 
 enum ExecutionFlags {
-    static let yield: UInt64  = 1 << 0  // 0001 (Bit 0)
-    static let stop: UInt64   = 1 << 1  // 0010 (Bit 1)
-    static let abort: UInt64  = 1 << 2  // 0100 (Bit 2)
+    static let yield: UInt64    = 1 << 0 // 0001 (Bit 0)
+    static let severity: UInt64 = 1 << 1 // 0010 (Bit 1)
+    static let stop: UInt64     = 1 << 2 // 0100 (Bit 2)
+    static let abort: UInt64    = 1 << 3 // 1000 (Bit 3)
 }
+
+public typealias Lint = (LintRunner) -> OperationState
 
 // MARK: - OperationExecutable Protocol
 protocol OperationExecutable: AnyObject, Sendable {
@@ -29,18 +31,130 @@ protocol OperationExecutable: AnyObject, Sendable {
     func execute() -> OperationState
 }
 
-class BaseOperationExecutable: OperationExecutable, @unchecked Sendable {
-    let operationName: String
+public class LintTableNode {
+    let lints: [Lint]
+    var counter: Int
+    let previous: LintTableNode?
+
+    init(lints: [Lint], counter: Int, previous: LintTableNode?) {
+        self.lints = lints
+        self.counter = counter
+        self.previous = previous
+    }
+}
+
+public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
+    public let operationName: String
     var executionFlags: UInt64 = 0
     var state: OperationState = .initialization
-    var startTime: ContinuousClock.Instant = ContinuousClock.now
+    var startTime: ContinuousClock.Instant = .now
     var lastProcessed: UInt = 0
+
+    public var lints: [Lint] = []
+    public var lintCounter: Int = 0
+
+    public var previousTable: LintTableNode? = nil
     
-    init(operationName: String) {
-        self.operationName = operationName
+    init(name: String?=nil, lints: [Lint]) {
+        self.operationName = name ?? "~unnamed~"
+        self.lints = lints
     }
 
     func execute() -> OperationState {
-        fatalError("Subclasses must override `execute`")
+        execution: while lintCounter < lints.count {
+            if executionFlags & ExecutionFlags.yield != 0 {
+                self.state = .running
+                return .running
+            }
+
+            let result = lints[lintCounter](self)
+
+            switch result {
+            case .firstRun, .running:
+                break
+            case .completed:
+                if previousTable != nil {
+                    popSuboperation()
+                    break
+                }
+                break execution
+            case .suspended, .unusualExecutionEvent:
+                self.state = result
+                return result
+            case .initialization, .waitingForReturn:
+                break
+            }
+
+            lintCounter += 1
+        }
+
+        self.state = .completed
+        return .completed
+    }
+}
+
+public protocol LintProvider {
+    var lints: [Lint] { get }
+    var operationName: String { get }
+}
+
+public protocol LintRunner: AnyObject {
+    var lints: [Lint] { get set }
+    var lintCounter: Int { get set }
+    
+    var previousTable: LintTableNode? { get set }
+
+    func pushSuboperation(_ newLints: [Lint])
+    func popSuboperation()
+}
+
+extension LintRunner {
+    @inline(__always)
+    public func pushSuboperation(_ newLints: [Lint]) {
+        let node = LintTableNode(lints: self.lints, counter: self.lintCounter, previous: previousTable)
+        previousTable = node
+        self.lints = newLints
+        self.lintCounter = -1
+    }
+
+    @inline(__always)
+    public func popSuboperation() {
+        guard let previous = previousTable else { return }
+        self.lints = previous.lints
+        self.lintCounter = previous.counter
+        self.previousTable = previous.previous
+    }
+}
+
+public protocol RunnableLintProvider: LintProvider {  }
+
+public class ManualLintRunner: LintRunner {
+    public var lints: [Lint]
+    public var lintCounter: Int = 0
+    
+    public var previousTable: LintTableNode? = nil
+    
+    public init(provider: RunnableLintProvider) {
+        self.lints = provider.lints
+    }
+    
+    public func execute() -> OperationState {
+        execution: while lintCounter < lints.count {
+            let result = lints[lintCounter](self)
+            switch result {
+            case .running:
+                // Continue to next lint.
+                break
+            case .completed:
+                break execution
+            case .suspended, .unusualExecutionEvent:
+                // Exit early if a lint signals suspension or an error.
+                return result
+            default:
+                break
+            }
+            lintCounter += 1
+        }
+        return .completed
     }
 }
