@@ -3,6 +3,7 @@ import Quick
 import Nimble
 @testable import MultitaskingEngine
 import PointerUtilities
+import Atomics
 
 class ExecutionContextSpec: AsyncSpec {
     override class func spec() {
@@ -57,16 +58,16 @@ class ExecutionContextSpec: AsyncSpec {
 
                 let threadCount = 10
                 let lock = APMLock()
-                var completed = 0
+                let completed = ManagedAtomic<Int>(0)
 
                 let threads = (0..<threadCount).map { _ in
-                    Thread {
-                        let result = ctx["shared"]
+                    Thread { [ctx] in
+                        lock.lock()
+                        defer { lock.unlock() }
+                        let result = ctx!["shared"]
                         _ = try? result.get()
 
-                        lock.lock()
-                        completed += 1
-                        lock.unlock()
+                        completed.wrappingIncrement(ordering: .relaxed)
                     }
                 }
 
@@ -76,17 +77,12 @@ class ExecutionContextSpec: AsyncSpec {
 
                 let start = Date()
                 while true {
-                    lock.lock()
-                    let done = completed
-                    lock.unlock()
-
-                    if done == threadCount { break }
+                    if completed.load(ordering: .relaxed) == threadCount { break }
                     if Date().timeIntervalSince(start) > 2 { break }
 
                     usleep(10_000) // 10ms
                 }
-
-                expect(completed).to(equal(threadCount))
+                expect(completed.load(ordering: .relaxed)).to(equal(threadCount))
             }
         }
     }
