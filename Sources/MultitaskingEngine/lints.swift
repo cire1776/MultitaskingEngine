@@ -84,6 +84,45 @@ extension LintTable {
             return lints[runner.lintCounter](runner)
         }
     }
+    
+    public class Prefaced: Steppable {
+        private var preface: LintTable.Sequential
+        private var main: LintTable.Steppable
+        
+        private var isPrefaceRunning = true
+        private var aborted: Bool = false
+        
+        public var identifier: Int
+        
+        public init(preface: LintTable.Sequential, main: LintTable.Steppable, identifier: Int=0) {
+            self.preface = preface
+            self.main = main
+
+            self.identifier = identifier
+        }
+        
+        public func prepend(_ lint: @escaping Lint) {
+            fatalError("Not Implemented")
+        }
+        
+        public func executionStep(runner: LintRunner) -> OperationState {
+            if aborted { return .completed }
+            
+            if (isPrefaceRunning) {
+                let result = preface.executionStep(runner: runner)
+                if result == .running { return .running }
+                self.isPrefaceRunning = false
+                if result != .completed {
+                    aborted = true
+                    return result
+                }
+                runner.lintCounter = -1
+                return .running
+            } else {
+                return main.executionStep(runner: runner)
+            }
+        }
+    }
 }
 
 public protocol LintProvider {
