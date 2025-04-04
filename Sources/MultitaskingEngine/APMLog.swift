@@ -141,7 +141,7 @@ actor APMLog {
     }
     
     /// **Synchronous Logging Call (No `await` needed)**
-    public nonisolated(unsafe) func log(level: LogLevel, category: String="None", message: String) {
+    public nonisolated func log(level: LogLevel, category: String="None", message: String) {
         Task { await self._log(level: level, category: category, message: message) }
     }
     

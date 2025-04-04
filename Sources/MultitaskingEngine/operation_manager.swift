@@ -202,7 +202,7 @@ actor OperationManager {
                     nextCycleQueue.append(operation)  // ✅ Now safely handled in addOperation()
                 }
 
-        case let .unusualExecutionEvent(.abort(message)):
+        case .unusualExecutionEvent(.abort(_)):
             print("🏁 Operation \(operation.operationName) aborted execution. No further action.")
             
         case .completed:

@@ -19,7 +19,7 @@ class TaskManager {
     // Execute all tasks in the queue
     func executeAll() async {
         for var task in taskQueue {
-            await task.execute()  // Execute the task
+            _ = task.execute()  // Execute the task
         }
     }
 }

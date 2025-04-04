@@ -29,8 +29,6 @@ public class Synchronize {
             return .notAvailable
         }
 
-        let current: [String]
-
         var destinationValue: [String] = []
         
         if destinationContext.containsKey(outputStream) {
