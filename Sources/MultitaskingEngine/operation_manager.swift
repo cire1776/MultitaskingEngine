@@ -53,6 +53,10 @@ actor OperationManager {
         
         return retries - tries
     }
+    
+    func isQueued(_ operation: any OperationExecutable) -> Bool {
+        self.mainQueue.contains(where: { $0?.operationID == operation.operationID })
+    }
 #endif
 
     func addOperation(_ operation: any OperationExecutable) async -> Bool {
