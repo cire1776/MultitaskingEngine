@@ -87,6 +87,12 @@ actor OperationManager {
         return true
     }
     
+    private func removeOperation(_ operation: any OperationExecutable) {
+        if let index = mainQueue.firstIndex(where: { $0?.operationID == operation.operationID}) {
+            mainQueue[index] = nil
+        }
+    }
+    
     func start() async {
         guard !isRunning || isPumping else { return }
         isRunning = true
@@ -132,8 +138,13 @@ actor OperationManager {
 
         guard head != tail else { return }  // ✅ Ensure there's work to do
 
+        // Advance head until you find a non-nil entry or you've reached tail.
+        while mainQueue[head] == nil && head != tail {
+            head = (head + 1) % queueSize
+        }
+
+        // If no valid operation was found, return.
         guard let operation = mainQueue[head] else {
-            head = (head + 1) % queueSize  // ✅ Move head forward if empty
             return
         }
 
@@ -153,6 +164,7 @@ actor OperationManager {
 
         await self.processResult(operation, result)
     }
+    
     private func processResult(_ operation: OperationExecutable, _ result: OperationState) async {
         operation.lastProcessed = pumpCycleID  // ✅ Track the correct cycle
         switch result {
