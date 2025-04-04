@@ -53,8 +53,8 @@ final class ReadFilesTests: AsyncSpec {
                 if case let .success(filename) = executionContext["filename"],
                    case let .success(pathname) = executionContext["pathname"] {
                     expect(files).to(contain(filename as! String))
-                    expect(pathname as! String).to(contain(filename as! String))
-                    expect(pathname as! String).to(beginWith(testDirectory))
+                    expect(pathname as? String).to(contain(filename as! String))
+                    expect(pathname as? String).to(beginWith(testDirectory))
                     files.remove(filename as! String)
                 } else {
                     fail("Missing filename or pathname on first tick")

@@ -50,7 +50,7 @@ final class OperationTest: AsyncSpec {
             }
             
             it("stops execution on .completed") {
-                let context = ExecutionContext()
+                _ = ExecutionContext()
                 let counter = Counter()
 
                 let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
@@ -65,7 +65,7 @@ final class OperationTest: AsyncSpec {
             }
             
             it("propagates unusual execution event immediately") {
-                let context = ExecutionContext()
+                _ = ExecutionContext()
                 let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
                     { _ in .unusualExecutionEvent(.exception("Boom")) }
                 ])))
@@ -132,11 +132,6 @@ final class OperationTest: AsyncSpec {
                 ])))
 
                 var result: OperationState = .running
-                var safety = 0
-
-//                while result == .running && safety < 30 {
-//                    safety += 1
-//                }
 
                 result = await top.execute()
 

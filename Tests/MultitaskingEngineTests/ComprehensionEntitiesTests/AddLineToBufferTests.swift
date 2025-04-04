@@ -72,7 +72,7 @@ final class AddLineToBufferTests: AsyncSpec {
                 }
                 
                 it("triggers a warning and does not modify the buffer") {
-                    let result = addLineToBuffer.process()
+                    _ = addLineToBuffer.process()
                    
                     expect(executionContext.pendingEvent).to(equal(.warning("Nil input received.")))
                     if case let .failure(error) = executionContext["output"] {

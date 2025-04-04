@@ -98,7 +98,7 @@ class operationManagerTests: AsyncSpec {
                 
                 expect(operation.state).to(equal(.running))  // ✅ Now we actually capture .running
                 
-                let retries = await manager.pump(retries: 10) {
+                _ = await manager.pump(retries: 10) {
                     operation.state == .completed
                 }
                 

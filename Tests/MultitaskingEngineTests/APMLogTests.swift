@@ -200,7 +200,7 @@ class APMLogTests: AsyncSpec {
                 let logs = await logger.getFilteredLogs(minLevel: .trace).sorted()
                 expect(logs.count).to(equal(totalLogs))
                 
-                for i in 1...totalLogs {
+                for _ in 1...totalLogs {
                     expect(logs).to(equal(logs.sorted()))
                 }
             }

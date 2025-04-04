@@ -45,7 +45,7 @@ final class ComprehensionModelTests: AsyncSpec {
                 expect(contents).toNot(contain("skip me"))
 
                 // ✅ Final result
-                let context = executionContext
+                _ = executionContext
                 expect(result).to(equal(.completed))
             }
         }

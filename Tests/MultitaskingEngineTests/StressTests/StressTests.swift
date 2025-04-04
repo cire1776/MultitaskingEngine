@@ -34,9 +34,9 @@ final class StressTests: AsyncSpec {
             
             for i in 0..<totalOperations {
                 let op = MockOperation(operationName: "Task-\(i)", states: [.running, .completed])
-                await manager?.addOperation(op)
+                _ = await manager?.addOperation(op)
             }
-            await print("📌 All 100,000 operations added. Queue size: \(manager?.calculateQueueSize())")
+            await print("📌 All 100,000 operations added. Queue size: \(manager?.calculateQueueSize() ?? 0)")
             
             await manager?.pump(times: 100_000)
 

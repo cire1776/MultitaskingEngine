@@ -11,7 +11,7 @@ func waitForCondition(_ condition: @escaping () -> Bool, timeout: TimeInterval =
 
     for _ in 0..<maxRetries {
         if condition() { return }  // ✅ Exit early if condition is met
-        await try? Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
     }
 
     print("⚠️ Timeout reached waiting for condition.")
