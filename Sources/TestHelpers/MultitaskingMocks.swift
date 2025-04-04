@@ -5,14 +5,17 @@
 //  Created by Eric Russell on 2/27/25.
 //
 
+import Foundation
 @testable import MultitaskingEngine
 
 final class MockOperation:OperationExecutable, @unchecked Sendable {
+    let operationName: String
+    var operationID: Int = UUID().hashValue
+    
     var executionFlags: UInt64 = 0
     var state: MultitaskingEngine.OperationState = .initialization
     var startTime: ContinuousClock.Instant = .now
     var lastProcessed: UInt = 0
-    let operationName: String
     private var states: [OperationState]
     private var currentStateIndex = 0
 
