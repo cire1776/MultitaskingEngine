@@ -17,7 +17,7 @@ public enum EntityResult: Equatable {
 final class ComprehensionInstance: RunnableLintProvider, CustomStringConvertible {
     let blueprintName: String
     var executionContext: StreamExecutionContext
-    private(set) var table: LintTable
+    private(set) var table: LintTable.Steppable
     
     public var operationName: String {
         "\(blueprintName)__\(String(format: "%X", UUID().uuidString.hashValue))"
@@ -31,7 +31,7 @@ final class ComprehensionInstance: RunnableLintProvider, CustomStringConvertible
         self.table = blueprint.table
         
         if let preinitializationLint = preinitializationLint {
-            self.table.lints.insert(preinitializationLint, at: 0)
+            self.table.prepend(preinitializationLint)
         }
     }
     

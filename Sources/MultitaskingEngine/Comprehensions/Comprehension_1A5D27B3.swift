@@ -10,7 +10,7 @@ import Foundation
 final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
     let executionContext: StreamExecutionContext
     
-    var table: LintTable
+    var table: LintTable.Steppable
     
     private let readFiles: ReadFiles
     private let skipOutput: SkipFilter
@@ -33,9 +33,9 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
             executionContext: self.executionContext
         )
 
-        self.table = LintTable(lints:[])
+        self.table = LintTable.Sequential(lints:[])
         
-        self.table = LintTable(lints:[
+        self.table = LintTable.Sequential(lints:[
             { _ in self.initialize() ; return .running },
             { _ in self.run() },
             { _ in self.finalize() ; return .completed },

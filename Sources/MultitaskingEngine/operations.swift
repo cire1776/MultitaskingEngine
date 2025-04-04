@@ -5,9 +5,13 @@ public enum OperationState: Equatable {
     case initialization
     case firstRun
     case running
+    case skipYield
     case suspended          // yield
     case waitingForReturn   // ;
     case completed          // .
+    case localBreak
+    case nonLocalBreak(Int)
+    case nonLocalContinue(Int)
     case unusualExecutionEvent(UnusualExecutionEvent)
     // may  return depending upon the event
 }
@@ -36,46 +40,71 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     var startTime: ContinuousClock.Instant = .now
     var lastProcessed: UInt = 0
 
-    public var table: LintTable
+    public var table: LintTable.Steppable
     public var lintCounter: Int = 0
 
     public var previousTableNode: LintTable.Node? = nil
     
-    init(name: String?=nil, provider: LintProvider) {
+    init(name: String?=nil, provider: RunnableLintProvider) {
         self.table = provider.table
         self.operationName = name ?? "~unnamed~"
     }
-
+    
+    @inline(__always)
     func execute() -> OperationState {
-        execution: while lintCounter < table.lints.count {
+        execution: while true {
             if executionFlags & ExecutionFlags.yield != 0 {
                 self.state = .running
                 return .running
             }
-
-            let result = table.lints[lintCounter](self)
-
-            switch result {
-            case .firstRun, .running:
-                break
-            case .completed:
-                if previousTableNode != nil {
-                    popSuboperation()
-                    break
-                }
-                break execution
-            case .suspended, .unusualExecutionEvent:
+            
+            let result = executeStep()
+            if result != .running {
                 self.state = result
-                return result
-            case .initialization, .waitingForReturn:
+                return result }
+        }
+    }
+    
+    private func executeStep() -> OperationState {
+        let result = table.executionStep(runner: self)
+        
+        switch result {
+        case .firstRun, .running:
+            break
+        case .completed:
+            if previousTableNode != nil {
+                popSuboperation()
                 break
             }
-
-            lintCounter += 1
+            return .completed
+        case .localBreak:
+            if self.previousTableNode != nil {
+                popSuboperation()
+                return execute()
+            }
+            return .completed
+        case .skipYield:
+            return execute()
+        case .nonLocalContinue(let identifier):
+            if self.previousTableNode != nil {
+                popSuboperation(identifier: identifier)
+                return execute()
+            }
+            self.state = .completed
+            return .completed
+        case .suspended, .unusualExecutionEvent:
+            self.state = result
+            return result
+        case .initialization, .waitingForReturn:
+            break
+        default:
+            fatalError("unexpected case: \(result)")
+            break
         }
-
-        self.state = .completed
-        return .completed
-    }
+        
+        lintCounter += 1
+        self.state = .running
+        return .running
+   }
 }
 

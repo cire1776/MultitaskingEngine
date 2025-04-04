@@ -11,16 +11,6 @@ import Nimble
 
 final class OperationTest: AsyncSpec {
     override class func spec() {
-        class DummyLintProvider: RunnableLintProvider {
-            var table: LintTable = LintTable(lints: [])
-            var operationName: String
-            
-            init(table: LintTable, operationName: String?=nil) {
-                self.table = table
-                self.operationName = operationName ?? "DummyOperation"
-            }
-        }
-        
         it("updates state to .completed after execution") {
            let operation = MockOperation(operationName: "CompletingOperation", states: [.running, .completed])
             
@@ -48,7 +38,7 @@ final class OperationTest: AsyncSpec {
                 let context = ExecutionContext()
                 let counter = Counter()
 
-                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable(lints: [
+                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
                     { _ in counter.increment(); return .running },
                     { _ in counter.increment(); return .running },
                     { _ in counter.increment(); return .completed }
@@ -63,7 +53,7 @@ final class OperationTest: AsyncSpec {
                 let context = ExecutionContext()
                 let counter = Counter()
 
-                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable(lints: [
+                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
                     { _ in counter.increment(); return .running },
                     { _ in counter.increment(); return .completed },
                     { _ in counter.increment(); return .running }
@@ -76,7 +66,7 @@ final class OperationTest: AsyncSpec {
             
             it("propagates unusual execution event immediately") {
                 let context = ExecutionContext()
-                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable(lints: [
+                let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
                     { _ in .unusualExecutionEvent(.exception("Boom")) }
                 ])))
 
@@ -90,16 +80,16 @@ final class OperationTest: AsyncSpec {
                 var output: [String] = []
                 
                 // Define the nested lint sequence
-                let subLints: LintArray = [
-                    { _ in output.append("C"); return .running },
+                let subLints: LintTable.Sequential = .init(lints: [
+                    { _ in print("in 'C'"); output.append("C"); return .running },
                     { _ in output.append("D"); return .completed }
-                ]
+                ])
                 
                 var operation: Operation! = nil  // placeholder for capture
-                operation = Operation(name: "top", provider: DummyLintProvider(table: LintTable(lints: [
+                operation = Operation(name: "top", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
                     { _ in output.append("A"); return .running },
                     { _ in output.append("B"); return .running },
-                    { $0.pushSuboperation(lints: subLints); return .running },
+                    { $0.pushSuboperation(table: subLints); return .skipYield },
                     { _ in output.append("E"); return .completed }
                 ])))
                 
@@ -120,34 +110,35 @@ final class OperationTest: AsyncSpec {
                 _ = ExecutionContext()
 
                 // Sub-suboperation (deepest)
-                let subSub = Operation(name: "subSub", provider: DummyLintProvider(table: LintTable(lints: [
+                let subSub = LintTable.Sequential(lints: [
                     { _ in output.append("3"); return .running },
                     { _ in output.append("4"); return .completed }
-                ])))
+                ])
 
                 // Suboperation (middle)
-                var top: Operation! = nil
-                var sub: Operation! = nil
-                sub = Operation(name: "sub", provider: DummyLintProvider(table: LintTable(lints: [
+                var sub: LintTable.Steppable! = nil
+                sub = LintTable.Sequential(lints: [
                     { _ in output.append("2"); return .running },
-                    { $0.pushSuboperation(lints: subSub.table.lints); return .running },
+                    { $0.pushSuboperation(table: subSub); return .skipYield },
                     { _ in output.append("5"); return .completed }
-                ])))
+                ])
                 
                 // Top-level operation
-                top = Operation(name: "top", provider: DummyLintProvider(table: LintTable(lints: [
+                var top: Operation! = nil
+                top = Operation(name: "top", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
                     { _ in output.append("1"); return .running },
-                    { $0.pushSuboperation(lints: sub.table.lints); return .running },
+                    { $0.pushSuboperation(table: sub); return .skipYield },
                     { _ in output.append("6"); return .completed }
                 ])))
 
                 var result: OperationState = .running
                 var safety = 0
 
-                while result == .running && safety < 30 {
-                    result = top.execute()
-                    safety += 1
-                }
+//                while result == .running && safety < 30 {
+//                    safety += 1
+//                }
+
+                result = top.execute()
 
                 expect(output).to(equal(["1", "2", "3", "4", "5", "6"]))
                 expect(result).to(equal(.completed))
@@ -159,23 +150,22 @@ final class OperationTest: AsyncSpec {
             var runner: ManualLintRunner!
             
             beforeEach {
-                dummyProvider = DummyLintProvider(table: LintTable(lints: []))
+                dummyProvider = DummyLintProvider(table: LintTable.Sequential(lints: []))
                 runner = ManualLintRunner(provider: dummyProvider)
             }
             
             context("with an empty lint array") {
                 it("returns .completed") {
-                    dummyProvider.table.lints = []
                     expect(runner.execute()).to(equal(.completed))
                 }
             }
             
             context("when all lints return .running or .completed") {
                 beforeEach {
-                    dummyProvider.table.lints = [
+                    dummyProvider.table = LintTable.Sequential(lints: [
                         { _ in return .running },
                         { _ in return .completed }
-                    ]
+                    ])
                 }
                 it("iterates through all lints and returns .completed") {
                     expect(runner.execute()).to(equal(.completed))
@@ -184,27 +174,27 @@ final class OperationTest: AsyncSpec {
             
             context("when a lint returns .suspended") {
                 beforeEach {
-                    dummyProvider.table.lints = [
+                    dummyProvider.table = LintTable.Sequential(lints: [
                         { _ in return .running },
                         { _ in return .suspended },
                         { _ in return .completed }
-                    ]
+                    ])
                 }
             }
             
             context("when a lint returns .unusualExecutionEvent") {
                 beforeEach {
                     let testError = UnusualExecutionEvent.exception("Test error")
-                    dummyProvider.table.lints = [
+                    dummyProvider.table = LintTable.Sequential(lints: [
                         { _ in return .running },
                         { _ in return .unusualExecutionEvent(testError) },
                         { _ in return .completed }
-                    ]
+                    ])
                     runner = ManualLintRunner(provider: dummyProvider)
                 }
                 
                 it("stops execution and returns the unusualExecutionEvent") {
-                    let result = runner.execute()
+                    let result = runner.executeAll()
                     switch result {
                     case .unusualExecutionEvent(let error):
                         expect("\(error)").to(contain("Test error"))
