@@ -145,7 +145,7 @@ actor OperationManager {
 
         operation.startTime = ContinuousClock().now
 
-        let result = operation.execute()
+        let result = await operation.execute()
 
         await self.processResult(operation, result)
     }

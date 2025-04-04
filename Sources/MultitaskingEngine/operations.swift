@@ -29,7 +29,7 @@ protocol OperationExecutable: AnyObject, Sendable {
     var state: OperationState { get set }
     var startTime: ContinuousClock.Instant { get set }
     var lastProcessed: UInt { get set }
-    func execute() -> OperationState
+    func execute() async -> OperationState
 }
 
 public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
@@ -50,22 +50,22 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     }
     
     @inline(__always)
-    func execute() -> OperationState {
+    func execute() async -> OperationState {
         execution: while true {
             if executionFlags & ExecutionFlags.yield != 0 {
                 self.state = .running
                 return .running
             }
             
-            let result = executeStep()
+            let result = await executeStep()
             if result != .running {
                 self.state = result
                 return result }
         }
     }
     
-    private func executeStep() -> OperationState {
-        let result = table.executionStep(runner: self)
+    private func executeStep() async -> OperationState {
+        let result = await table.executionStep(runner: self)
         
         switch result {
         case .firstRun, .running:
@@ -79,22 +79,22 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
         case .localBreak:
             if self.previousTableNode != nil {
                 popSuboperation()
-                return execute()
+                return await execute()
             }
             return .completed
         case .skipYield:
-            return execute()
+            return await execute()
         case .nonLocalContinue(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                return execute()
+                return await execute()
             }
             self.state = .completed
             return .completed
         case .nonLocalBreak(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                return execute()
+                return await execute()
             }
             self.state = .running
             return .completed

@@ -3,7 +3,7 @@ import Nimble
 @testable import MultitaskingEngine
 @testable import TestHelpers
 
-final class LintTablePrefacedTests: QuickSpec {
+final class LintTablePrefacedTests: AsyncSpec {
     override class func spec() {
         describe("LintTable.Prefaced") {
             context("when the preface executes normally") {
@@ -40,7 +40,7 @@ final class LintTablePrefacedTests: QuickSpec {
                     let provider = DummyLintProvider(table: prefacedTable)
                     let runner = ManualLintRunner(provider: provider)
                     
-                    let result = runner.executeAll()
+                    let result = await runner.executeAll()
                     expect(result).to(equal(.completed))
                     // Expect the output to be: "preface1", "preface2", then "main".
                     expect(output).to(equal(["preface1", "preface2", "main"]))
@@ -72,7 +72,7 @@ final class LintTablePrefacedTests: QuickSpec {
                     let provider = DummyLintProvider(table: prefacedTable)
                     let runner = ManualLintRunner(provider: provider)
                     
-                    let result = runner.execute()
+                    let result = await runner.execute()
                     expect(result).to(equal(.unusualExecutionEvent(.exception("Failure in preface"))))
                     // Only the error-producing preface should run.
                     expect(output).to(equal(["errorPreface"]))

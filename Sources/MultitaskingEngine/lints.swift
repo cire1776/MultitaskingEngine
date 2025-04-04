@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/1/25.
 //
 
-public typealias Lint = (LintRunner) -> OperationState
+public typealias Lint = (LintRunner) async -> OperationState
 public typealias LintArray = [Lint]
 
 // MARK: - LintTable and Concrete Types
@@ -22,7 +22,7 @@ public enum LintTable {
         var identifier: Int { get set }
         
         // Execute the next lint and return an OperationState.
-        func executionStep(runner: LintRunner) -> OperationState
+        func executionStep(runner: LintRunner) async -> OperationState
         
         mutating func prepend(_ lint: @escaping Lint)
     }
@@ -56,10 +56,10 @@ extension LintTable {
         }
         
         @inline(__always)
-        public func executionStep(runner: LintRunner) -> OperationState {
+        public func executionStep(runner: LintRunner) async -> OperationState {
             guard runner.lintCounter < self.lints.count else { return .completed }
             
-            return lints[runner.lintCounter](runner)
+            return await lints[runner.lintCounter](runner)
         }
     }
     
@@ -77,11 +77,11 @@ extension LintTable {
             lints.insert(lint, at: 0)
         }
 
-        public func executionStep(runner: LintRunner) -> OperationState {
+        public func executionStep(runner: LintRunner) async -> OperationState {
             if runner.lintCounter >= self.lints.count {
                 runner.lintCounter = 0
             }
-            return lints[runner.lintCounter](runner)
+            return await lints[runner.lintCounter](runner)
         }
     }
     
@@ -105,11 +105,11 @@ extension LintTable {
             fatalError("Not Implemented")
         }
         
-        public func executionStep(runner: LintRunner) -> OperationState {
+        public func executionStep(runner: LintRunner) async -> OperationState {
             if aborted { return .completed }
             
             if (isPrefaceRunning) {
-                let result = preface.executionStep(runner: runner)
+                let result = await preface.executionStep(runner: runner)
                 if result == .running { return .running }
                 self.isPrefaceRunning = false
                 if result != .completed {
@@ -119,7 +119,7 @@ extension LintTable {
                 runner.lintCounter = -1
                 return .running
             } else {
-                return main.executionStep(runner: runner)
+                return await main.executionStep(runner: runner)
             }
         }
     }
@@ -181,14 +181,14 @@ public class ManualLintRunner: LintRunner {
         self.table = provider.table
     }
    
-    public func executeAll() -> OperationState {
+    public func executeAll() async -> OperationState {
         var result: OperationState
-        repeat { result = execute() } while result == .running
+        repeat { result = await execute() } while result == .running
         return result
     }
     
-    public func execute() -> OperationState {
-        let result = table.executionStep(runner: self)
+    public func execute() async -> OperationState {
+        let result = await table.executionStep(runner: self)
         
         switch result {
         case .firstRun, .running:
@@ -202,21 +202,21 @@ public class ManualLintRunner: LintRunner {
         case .localBreak:
             if self.previousTableNode != nil {
                 popSuboperation()
-                return execute()
+                return await execute()
             }
             return .completed
         case .skipYield:
-            return execute()
+            return await execute()
         case .nonLocalContinue(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                return execute()
+                return await execute()
             }
             return .completed
         case .nonLocalBreak(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                return execute()
+                return await execute()
             }
             return .running
         case .unusualExecutionEvent:

@@ -65,11 +65,11 @@ func benchmarkOperationSequentialLintTableAppending(iterations: Int) async {
         _ = await OM.addOperation(operation)
     }
     
-    var operation2 = Operation(provider: DummyLintProvider(table: LintTable.Sequential(lints: [])))
+    let operation2 = Operation(provider: DummyLintProvider(table: LintTable.Sequential(lints: [])))
     
     await measureExecutionTime_async(label: "Base NOP Execution", iterations: iterations) {
         for _ in 0..<100 {
-            _ = nopLint(operation2)
+            _ = await nopLint(operation2)
         }
     }
     
@@ -119,7 +119,7 @@ func benchmarkOperationNonTrivialLint(iterations: Int) async {
     
     await measureExecutionTime_async(label: "Base NonTrivialLintBenchmark", iterations: iterations) {
         for _ in 0 ..< 100 {
-            _ = nonTrivialLint(operation)
+            _ = await nonTrivialLint(operation)
         }
     }
 }

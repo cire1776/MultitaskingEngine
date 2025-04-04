@@ -79,7 +79,7 @@ nonisolated(unsafe) let nopLint: Lint = { _ in
 }
 
 // Benchmark for a flat sequential lint table.
-func benchmarkSequentialLintTable(iterations: Int) {
+func benchmarkSequentialLintTable(iterations: Int) async {
     // Create a lint array of 100 no‑op lints.
     let lints = Array(repeating: nopLint, count: 100)
     // Create a sequential lint table.
@@ -88,13 +88,13 @@ func benchmarkSequentialLintTable(iterations: Int) {
     let runner = ManualLintRunner(provider: DummyLintProvider(table: table))
     
     // Measure the execution time for a large number of steps.
-    measureExecutionTime(label: "SequentialLintTable", iterations: iterations) {
-        _ = runner.executeAll()
+    await measureExecutionTime_async(label: "SequentialLintTable", iterations: iterations) {
+        _ = await runner.executeAll()
     }
 }
 
 // Benchmark for a loop lint table.
-func benchmarkLoopLintTable(iterations: Int) {
+func benchmarkLoopLintTable(iterations: Int) async {
     // Create a lint array of 100 no‑op lints.
     var lints = Array(repeating: nopLint, count: 100)
     lints.append({ _ in .completed })
@@ -105,13 +105,13 @@ func benchmarkLoopLintTable(iterations: Int) {
     let runner = ManualLintRunner(provider: DummyLintProvider(table: table))
     
     // Measure the execution time for many execution steps.
-    measureExecutionTime(label: "LoopLintTable", iterations: iterations) {
-        _ = runner.executeAll()
+    await measureExecutionTime_async(label: "LoopLintTable", iterations: iterations) {
+        _ = await runner.executeAll()
     }
 }
 
 // Benchmark for a flat sequential lint table that appends to an output array.
-func benchmarkSequentialLintTableAppending(iterations: Int) {
+func benchmarkSequentialLintTableAppending(iterations: Int) async {
     // Output array to capture the work done by lints.
     var output: [Int] = []
     
@@ -131,15 +131,15 @@ func benchmarkSequentialLintTableAppending(iterations: Int) {
     let runner = ManualLintRunner(provider: DummyLintProvider(table: table))
     
     // Benchmark the execution of a single step over many iterations.
-    measureExecutionTime(label: "SequentialLintTableAppending", iterations: iterations) {
-        _ = runner.executeAll()
+    await measureExecutionTime_async(label: "SequentialLintTableAppending", iterations: iterations) {
+        _ = await runner.executeAll()
     }
     
     var runner2 = ManualLintRunner(provider: DummyLintProvider(table: LintTable.Sequential(lints: [])))
     
-    measureExecutionTime(label: "Base NOP Execution", iterations: iterations) {
+    await measureExecutionTime_async(label: "Base NOP Execution", iterations: iterations) {
         for _ in 0..<100 {
-            _ = nopLint(runner2)
+            _ = await nopLint(runner2)
         }
     }
     
@@ -153,7 +153,7 @@ func benchmarkSequentialLintTableAppending(iterations: Int) {
 }
 
 // Benchmark for a loop lint table that appends to an output array.
-func benchmarkLoopLintTableAppending(iterations: Int) {
+func benchmarkLoopLintTableAppending(iterations: Int) async {
     var output: [Int] = []
 
     let appendingLint: Lint = { _ in
@@ -168,8 +168,8 @@ func benchmarkLoopLintTableAppending(iterations: Int) {
     let table = LintTable.Loop(lints: lints, identifier: 0)
     let runner = ManualLintRunner(provider: DummyLintProvider(table: table))
     
-    measureExecutionTime(label: "LoopLintTableAppending", iterations: iterations) {
-        _ = runner.executeAll()
+    await measureExecutionTime_async(label: "LoopLintTableAppending", iterations: iterations) {
+        _ = await runner.executeAll()
     }
 }
 
@@ -192,7 +192,7 @@ nonisolated(unsafe) let nonTrivialLint: Lint = { _ in
     return .running
 }
 
-func benchmarkNonTrivialLint(iterations: Int) {
+func benchmarkNonTrivialLint(iterations: Int) async {
     // Create an array of 100 non‑trivial lints.
     let lints = Array(repeating: nonTrivialLint, count: 100)
     
@@ -202,14 +202,14 @@ func benchmarkNonTrivialLint(iterations: Int) {
     // Instantiate a ManualLintRunner with the sequential table.
     let runner = ManualLintRunner(provider: DummyLintProvider(table: table))
     
-    // Benchmark by executing the entire lint chain repeatedly.
-    measureExecutionTime(label: "NonTrivialLintBenchmark", iterations: iterations) {
-         _ = runner.executeAll()
+//     Benchmark by executing the entire lint chain repeatedly
+    await measureExecutionTime_async(label: "NonTrivialLintBenchmark", iterations: iterations) {
+        _ = await runner.executeAll()
     }
     
-    measureExecutionTime(label: "Base NonTrivialLintBenchmark", iterations: iterations) {
+    await measureExecutionTime_async(label: "Base NonTrivialLintBenchmark", iterations: iterations) {
         for _ in 0 ..< 100 {
-            _ = nonTrivialLint(runner)
+            _ = await nonTrivialLint(runner)
         }
     }
 
@@ -223,13 +223,13 @@ struct ExecutionBenchmarkApp {
     static func main() async {
         print("🚀 Starting MLR Execution Benchmarks...")
         // Run benchmarks with 1,000,000 iterations each.
-        benchmarkSequentialLintTable(iterations: 1_000_000)
-        benchmarkLoopLintTable(iterations: 1_000_000)
+        await benchmarkSequentialLintTable(iterations: 1_000_000)
+        await benchmarkLoopLintTable(iterations: 1_000_000)
         
-        benchmarkSequentialLintTableAppending(iterations: 1_000_000)
-        benchmarkLoopLintTableAppending(iterations: 1_000_000)
+        await benchmarkSequentialLintTableAppending(iterations: 1_000_000)
+        await benchmarkLoopLintTableAppending(iterations: 1_000_000)
         
-        benchmarkNonTrivialLint(iterations: 1_000_000)
+        await benchmarkNonTrivialLint(iterations: 1_000_000)
 
         print("🚀 Starting Operation/MTE Execution Benchmarks...")
         

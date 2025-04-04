@@ -35,7 +35,7 @@ final class ComprehensionModelTests: AsyncSpec {
                 let comprehension = Comprehension_1A5D27B3(executionContext: executionContext)
                 let instance = comprehension.instantiate(preinitialization_lint: {_ in executionContext["baseDir"] = .success(dir) ; return .firstRun })
                 let runner = ManualLintRunner(provider: instance)
-                let result = runner.executeAll()
+                let result = await runner.executeAll()
 
                 // ✅ Validate output stream
                 let contents = try? executionContext["contents"].get() as? [String]

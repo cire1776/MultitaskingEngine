@@ -35,7 +35,7 @@ final class OperationTest: AsyncSpec {
         
         describe("Flat Operation") {
             it("executes all lints in order and increments shared counter") {
-                let context = ExecutionContext()
+                _ = ExecutionContext()
                 let counter = Counter()
 
                 let operation = Operation(name: "", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
@@ -44,7 +44,7 @@ final class OperationTest: AsyncSpec {
                     { _ in counter.increment(); return .completed }
                 ])))
                 
-                while operation.execute() == .running {}
+                while await operation.execute() == .running {}
 
                 expect(counter.value).to(equal(3))
             }
@@ -59,7 +59,7 @@ final class OperationTest: AsyncSpec {
                     { _ in counter.increment(); return .running }
                 ])))
 
-                while operation.execute() == .running {}
+                while await operation.execute() == .running {}
 
                 expect(counter.value).to(equal(2))  // third lint should not run
             }
@@ -70,7 +70,7 @@ final class OperationTest: AsyncSpec {
                     { _ in .unusualExecutionEvent(.exception("Boom")) }
                 ])))
 
-                let result = operation.execute()
+                let result = await operation.execute()
                 expect(result).to(equal(.unusualExecutionEvent(.exception("Boom"))))
             }
         }
@@ -97,7 +97,7 @@ final class OperationTest: AsyncSpec {
                 var safety = 0
                 
                 while result == .running && safety < 20 {
-                    result = operation.execute()
+                    result = await operation.execute()
                     safety += 1
                 }
                 
@@ -138,7 +138,7 @@ final class OperationTest: AsyncSpec {
 //                    safety += 1
 //                }
 
-                result = top.execute()
+                result = await top.execute()
 
                 expect(output).to(equal(["1", "2", "3", "4", "5", "6"]))
                 expect(result).to(equal(.completed))
@@ -156,7 +156,8 @@ final class OperationTest: AsyncSpec {
             
             context("with an empty lint array") {
                 it("returns .completed") {
-                    expect(runner.execute()).to(equal(.completed))
+                    let result = await runner.execute()
+                    expect(result).to(equal(.completed))
                 }
             }
             
@@ -168,7 +169,8 @@ final class OperationTest: AsyncSpec {
                     ])
                 }
                 it("iterates through all lints and returns .completed") {
-                    expect(runner.execute()).to(equal(.completed))
+                    let result = await runner.execute()
+                    expect(result).to(equal(.completed))
                 }
             }
             
@@ -184,7 +186,7 @@ final class OperationTest: AsyncSpec {
                 }
                 
                 it("stops execution and returns the unusualExecutionEvent") {
-                    let result = runner.executeAll()
+                    let result = await runner.executeAll()
                     switch result {
                     case .unusualExecutionEvent(let error):
                         expect("\(error)").to(contain("Test error"))

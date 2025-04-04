@@ -36,7 +36,7 @@ final class LintTests: AsyncSpec {
                     ])
                     
                     let runner = ManualLintRunner(provider: DummyLintProvider(table: loop))
-                    _ = runner.executeAll()
+                    await _ = runner.executeAll()
                                         
                     expect(output).to(equal(["hello 1", "hello 2", "hello 3", "hello 4", "hello 5", "hello 6"]))
                 }
@@ -53,11 +53,11 @@ final class LintTests: AsyncSpec {
                         
                         let runner = ManualLintRunner(provider: DummyLintProvider(table: loop))
                         
-                        var result = runner.execute()
+                        var result = await runner.execute()
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["hello 1"]))
 
-                        result = runner.execute()
+                        result = await runner.execute()
                         expect(result).to(equal(.completed))
                         expect(output).to(equal(["hello 1","hello 2"]))
                     }
@@ -76,12 +76,12 @@ final class LintTests: AsyncSpec {
                         ])
                         
                         let runner = ManualLintRunner(provider: DummyLintProvider(table: loop))
-                        var result = runner.execute()
+                        var result = await runner.execute()
                         
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["hello 1"]))
 
-                        result = runner.execute()
+                        result = await runner.execute()
                         
                         expect(result).to(equal(.completed))
                         expect(output).to(equal(["hello 1", "hello 2"]))
@@ -108,22 +108,22 @@ final class LintTests: AsyncSpec {
 
                         let runner = ManualLintRunner(provider: DummyLintProvider(table: loop_outer))
                         
-                        var result = runner.execute()
+                        var result = await runner.execute()
                         
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["outer first"]))
 
-                        result = runner.execute()
+                        result = await runner.execute()
                         
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["outer first", "middle"]))
 
-                        result = runner.execute()
+                        result = await runner.execute()
                         
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["outer first", "middle", "inner"]))
 
-                        result = runner.execute()
+                        result = await runner.execute()
                         
                         expect(result).to(equal(.completed))
                         expect(output).to(equal(["outer first", "middle", "inner", "outer last"]))

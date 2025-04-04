@@ -249,7 +249,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 }
                 
                 it("executes the full lint chain on first run and correctly injects baseDir") {
-                    let result = runner.executeAll()
+                    let result = await runner.executeAll()
                     expect(result).to(equal(.completed))
                     
                     // Verify that the preinitialization lint injected baseDir into the execution context.
@@ -259,14 +259,14 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 
                 it("on subsequent executions, only the run lint is executed while preserving baseDir") {
                     // First execution runs the full lint chain.
-                    _ = runner.executeAll()
+                    _ = await runner.executeAll()
                     
                     // Capture the injected baseDir after the first run.
                     let firstBaseDir = try? executionContext["baseDir"].get() as? String
                     expect(firstBaseDir).to(equal(testDir))
                     
                     // Subsequent execution should only run the run lint.
-                    let secondResult = runner.executeAll()
+                    let secondResult = await runner.executeAll()
                     expect(secondResult).to(equal(.completed))
                     
                     // Confirm that the baseDir injection remains unchanged.
@@ -321,7 +321,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 }
                 
                 it("executes the full lint chain on first run and correctly injects baseDir") {
-                    let result = operation.execute()
+                    let result = await operation.execute()
                     expect(result).to(equal(.completed))
                     
                     // Verify that the preinitialization lint injected baseDir into the execution context.
@@ -331,14 +331,14 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 
                 it("on subsequent executions, only the run lint is executed while preserving baseDir") {
                     // First execution runs full lint chain.
-                    _ = operation.execute()
+                    _ = await operation.execute()
                     
                     // Capture the injected baseDir after the first run.
                     let firstBaseDir = try? executionContext["baseDir"].get() as? String
                     expect(firstBaseDir).to(equal(testDir))
                     
                     // Subsequent execution should only run the run lint.
-                    let secondResult = operation.execute()
+                    let secondResult = await operation.execute()
                     expect(secondResult).to(equal(.completed))
                     
                     // Confirm that the baseDir injection remains unchanged.
