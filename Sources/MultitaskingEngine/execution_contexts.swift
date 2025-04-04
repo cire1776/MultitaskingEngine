@@ -121,7 +121,7 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming {
     
     private var dynamicVariables: [String: VariableStorage] = [:]
     private let dynamicLock = NSLock()
-
+    
     subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {
             dynamicLock.lock()
@@ -181,7 +181,7 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming {
             }
         }
     }
-
+    
     func containsKey(_ name: String) -> Bool {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
@@ -197,15 +197,43 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming {
     func ensure(_ name: String, defaultValue: Any?) {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
-
+        
         guard dynamicVariables[name] == nil else {
             return  // ✅ Don't override existing values
         }
-
+        
         dynamicVariables[name] = .value(defaultValue)
     }
     
     func endTick() {
         self.tick += 1
+    }
+}
+
+extension StreamExecutionContext {
+    /// Returns a formatted string that lists all stored streams.
+    public func dumpStreams() -> String {
+        var output = "---- Execution Context Dump ----\n"
+        dynamicLock.lock()
+        let sortedKeys = dynamicVariables.keys.sorted()
+        for key in sortedKeys {
+            let valueDescription: String
+            if let storage = dynamicVariables[key] {
+                switch storage {
+                case .value(let anyValue):
+                    valueDescription = "\(anyValue ?? "nil")"
+                case .ephemeral(let anyValue, let tick):
+                    valueDescription = "ephemeral(\(anyValue ?? "nil"), tick: \(tick))"
+                case .index(let index):
+                    valueDescription = "index(\(index))"
+                }
+            } else {
+                valueDescription = "nil"
+            }
+            output += "  \(key): \(valueDescription)\n"
+        }
+        dynamicLock.unlock()
+        output += "---- End Dump ----\n"
+        return output
     }
 }
