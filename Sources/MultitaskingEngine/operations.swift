@@ -91,6 +91,13 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
             }
             self.state = .completed
             return .completed
+        case .nonLocalBreak(let identifier):
+            if self.previousTableNode != nil {
+                popSuboperation(identifier: identifier)
+                return execute()
+            }
+            self.state = .running
+            return .completed
         case .unusualExecutionEvent:
             self.state = result
             return result

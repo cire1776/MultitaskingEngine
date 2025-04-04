@@ -213,6 +213,12 @@ public class ManualLintRunner: LintRunner {
                 return execute()
             }
             return .completed
+        case .nonLocalBreak(let identifier):
+            if self.previousTableNode != nil {
+                popSuboperation(identifier: identifier)
+                return execute()
+            }
+            return .running
         case .unusualExecutionEvent:
             // Exit early if a lint signals suspension or an error.
             return result
