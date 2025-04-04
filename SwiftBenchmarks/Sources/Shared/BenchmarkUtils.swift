@@ -21,6 +21,18 @@ public func measureExecutionTime(label: String, iterations: Int, _ block: () -> 
     print("🔥 \(label) - Time: \(formatNumber( elapsedSeconds)) seconds, Ops/sec: \(formatNumber(opsPerSecond))")
 }
 
+public func measureExecutionTime_async(label: String, iterations: Int, _ block: ()  async -> Void) async {
+    let startTime = DispatchTime.now()
+    await block()
+    let endTime = DispatchTime.now()
+
+    let elapsedNanoseconds = Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds)
+    let elapsedSeconds = elapsedNanoseconds / 1_000_000_000
+    let opsPerSecond = Double(iterations) / elapsedSeconds
+
+    print("🔥 \(label) - Time: \(formatNumber( elapsedSeconds)) seconds, Ops/sec: \(formatNumber(opsPerSecond))")
+}
+
 public func formatNumber(_ number: Double) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal

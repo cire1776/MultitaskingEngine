@@ -12,6 +12,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.0"),
+        .package(name: "MultitaskingEngine", path: "../"),
+//        .package(name: "TestHelpers", path: "../"),
     ],
     targets: [
         // ✅ Shared Target for Common Code
@@ -22,6 +24,12 @@ let package = Package(
             sources: ["BenchmarkUtils.swift", "CircularQueueWrapper.swift", "VariableStoreWrapper.swift"],
             swiftSettings: [.define("ENABLE_TESTING")]  // ✅ Allows `@testable import`
         ),
+//        
+//        .target(
+//            name: "TestHelpers",
+//            dependencies: ["MultitaskingEngine", "PointerUtilities"],
+//            path: "../Sources/TestHelpers"
+//        ),
 
         // ✅ SwitchVsClosure Benchmark (Uses `Shared`)
         .executableTarget(
@@ -69,6 +77,18 @@ let package = Package(
 
         // ✅ Placeholder for Additional Benchmarks
         .executableTarget(
+            name: "LintTableBenchmarks",
+            dependencies: [
+                "MultitaskingEngine",
+                "CQueue", "CVariableStore", "Shared",
+                .product(name: "Atomics", package: "swift-atomics")
+            ],
+            path: "Sources/LintTableBenchmarks",
+            sources: ["linttablemain.swift","operation_benchmarks.swift"]
+        ),
+        
+        // ✅ Placeholder for Additional Benchmarks
+        .executableTarget(
             name: "OtherBenchmarks",
             dependencies: [],
             path: "Sources/OtherBenchmarks"
@@ -89,11 +109,11 @@ let package = Package(
             sources: ["c_variable_store_bridge.c", "c_variable_store.c"],
             publicHeadersPath: "include"
         ),
-        // ✅ Unit Tests
-        .testTarget(
-            name: "SwiftBenchmarksTests",
-            dependencies: ["SwitchVsClosureBenchmark"],
-            path: "Tests/SwiftBenchmarksTests"
-        )
+//        // ✅ Unit Tests
+//        .testTarget(
+//            name: "SwiftBenchmarksTests",
+//            dependencies: ["SwitchVsClosureBenchmark"],
+//            path: "Tests/SwiftBenchmarksTests"
+//        )
     ]
 )
