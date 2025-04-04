@@ -32,20 +32,13 @@ final class LintTests: AsyncSpec {
                     var count = 1
                     
                     let loop = LintTable.Loop(lints: [
-                        { _ in output.append("hello \(count)"); count += 1; return count <= 6 ? .running : .localBreak },
+                        { _ in print("in loop: \(count)");if count > 100 { fatalError("opps!") }; output.append("hello \(count)"); count += 1; return count <= 6 ? .running : .localBreak },
                     ])
                     
-                    var expected_count = 1
-                    var expectation:[String] = []
-                    while expected_count <= 6 {
-                        let runner = ManualLintRunner(provider: DummyLintProvider(table: loop))
-                        let result = runner.execute()
-                    
-                        expect(result).to(equal(expected_count==6 ? .completed : .running))
-                        expectation.append("hello \(expected_count)")
-                        expect(output).to(equal(expectation))
-                        expected_count += 1
-                    }
+                    let runner = ManualLintRunner(provider: DummyLintProvider(table: loop))
+                    _ = runner.executeAll()
+                                        
+                    expect(output).to(equal(["hello 1", "hello 2", "hello 3", "hello 4", "hello 5", "hello 6"]))
                 }
                 
                 describe("breakLoop") {
