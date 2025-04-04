@@ -19,7 +19,7 @@ import Glibc
 #endif
 
 /// ✅ Cross-Platform Adaptive Lock
-final class APMLock {
+final class APMLock: Sendable {
     #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
     private let _lock = NSLock()
     #else
