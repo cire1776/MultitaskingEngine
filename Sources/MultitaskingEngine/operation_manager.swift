@@ -93,6 +93,23 @@ actor OperationManager {
         }
     }
     
+    public func addAwait(_ operation: any OperationExecutable) async {
+        guard operation.state == .running else { operation.state = .unusualExecutionEvent(.exception("~ULang internal~: Operation not running"))
+            return
+        }
+        self.removeOperation(operation)
+        operation.state = .awaiting
+        await self.processNextOperation()
+    }
+    
+    public func awaitDone(_ operation: any OperationExecutable) async {
+        guard operation.state == .awaiting else { operation.state = .unusualExecutionEvent(.exception("~ULang internal~: Operation not awaiting"))
+            return
+        }
+        operation.state = .running
+        _ = await addOperation(operation)
+    }
+    
     func start() async {
         guard !isRunning || isPumping else { return }
         isRunning = true

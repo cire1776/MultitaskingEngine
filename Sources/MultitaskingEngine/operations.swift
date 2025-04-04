@@ -6,6 +6,7 @@ public enum OperationState: Sendable, Equatable {
     case firstRun
     case running
     case skipYield
+    case awaiting
     case waitingForReturn   // ;
     case completed          // .
     case localBreak
