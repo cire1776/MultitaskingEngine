@@ -96,7 +96,9 @@ func benchmarkSequentialLintTable(iterations: Int) {
 // Benchmark for a loop lint table.
 func benchmarkLoopLintTable(iterations: Int) {
     // Create a lint array of 100 no‑op lints.
-    let lints = Array(repeating: nopLint, count: 100)
+    var lints = Array(repeating: nopLint, count: 100)
+    lints.append({ _ in .completed })
+    
     // Create a loop lint table.
     let table = LintTable.Loop(lints: lints, identifier: 0)
     // Instantiate a manual lint runner with the loop table.
@@ -159,7 +161,8 @@ func benchmarkLoopLintTableAppending(iterations: Int) {
         return .running
     }
     
-    let lints = Array(repeating: appendingLint, count: 100)
+    var lints = Array(repeating: appendingLint, count: 99)
+    lints.append({ _ in .localBreak } )
     
     // Create a LoopLintTable. In our design, a loop table resets its counter when a lint returns .completed.
     let table = LintTable.Loop(lints: lints, identifier: 0)

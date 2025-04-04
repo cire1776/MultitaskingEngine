@@ -27,7 +27,8 @@ func benchmarkOperationSequentialLintTable(iterations: Int) async {
 // Benchmark for a loop lint table.
 func benchmarkOperationLoopLintTable(iterations: Int) async {
     // Create a lint array of 100 no‑op lints.
-    let lints = Array(repeating: nopLint, count: 100)
+    var lints = Array(repeating: nopLint, count: 99)
+    lints.append({ _ in .localBreak })
     // Create a loop lint table.
     let table = LintTable.Loop(lints: lints, identifier: 0)
     // Instantiate a manual lint operation with the loop table.
