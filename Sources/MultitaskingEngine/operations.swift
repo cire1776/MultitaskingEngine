@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - OperationState Enum
-public enum OperationState: Equatable {
+public enum OperationState: Sendable, Equatable {
     case initialization
     case firstRun
     case running

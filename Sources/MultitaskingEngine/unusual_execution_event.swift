@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 3/7/25.
 //
 
-public enum UnusualExecutionEvent: Equatable {
+public enum UnusualExecutionEvent: Sendable, Equatable {
     case warning(String)     // ⚠️ Informational; execution continues naturally
     case exception(String)   // 🔶 Structured error; recovery depends on UUES handlers
     case abort(String)       // ❌ Execution stops immediately, no recovery
