@@ -111,7 +111,7 @@ public class ExecutionContext: HeapExecutionContext, EC.Writable {
     }
 }
 
-public class StreamExecutionContext: HeapExecutionContext, EC.Streaming {
+public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchecked Sendable {
     public var operation: Operation? = nil
     
     public var pendingEvent: UnusualExecutionEvent?
