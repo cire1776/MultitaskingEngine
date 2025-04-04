@@ -37,7 +37,7 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
         
         self.table = LintTable.Sequential(lints:[
             { _ in self.initialize() ; return .running },
-            { _ in self.run() },
+            { [self] in $0.pushSuboperation(table: LintTable.Sequential(lints: produceRun())); return .skipYield },
             { _ in self.finalize() ; return .completed },
             { _ in self.finalize() ; return .completed },
         ])
@@ -61,11 +61,133 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
         skipOutput.finalize()
     }
     
+    
     @inline(__always)
-    func run() -> OperationState {
+    private func produceTickFlow () -> LintTable.Steppable {
+        let fileContext = StreamExecutionContext()
+        
+        return LintTable.Sequential(lints: [
+            { [self] _ in
+                switch readFiles.next() {
+                case .notAvailable:
+                    return .localBreak  // short-circuit tick
+                case .eof:
+                    return .nonLocalBreak(2)
+                case .proceed:
+                    break  // continue tick
+                case .unusualExecutionEvent:
+                    assert(executionContext.pendingEvent != nil)
+                    return .unusualExecutionEvent(executionContext.pendingEvent!)
+                }
+                
+                return .running
+            },
+            { [self] _ in
+                switch skipOutput.include() {
+                case .notAvailable:
+                    return .localBreak  // short-circuit tick
+                    
+                case .eof:
+                    return .nonLocalBreak(2)
+                    
+                case .proceed:
+                    break  // continue tick
+                    
+                case .unusualExecutionEvent:
+                    assert(executionContext.pendingEvent != nil)
+                    return .unusualExecutionEvent(executionContext.pendingEvent!)
+                }
+                
+                return .running
+            },
+            { [self] _ in
+                guard let pathname = try? executionContext["pathname"].get() else {
+                    fileContext.triggerUnusualEvent(.exception("Pathname not provided"))
+                    return .unusualExecutionEvent(executionContext.pendingEvent!)
+                }
+                
+                fileContext["filename"] = .success(pathname)
+                
+                let processFile = Comprehension_ProcessFile(executionContext: fileContext)
+                let result = processFile.execute()
+                
+//                print(fileContext.dumpStreams())
+//                print("result: ", result)
+                
+                switch result {
+                case .notAvailable:
+                    return .localBreak  // short-circuit tick
+                    
+                case .eof:
+                    return .nonLocalBreak(2)
+                    
+                case .proceed:
+                    break  // continue tick
+                    
+                case .unusualExecutionEvent:
+                    executionContext.triggerUnusualEvent(fileContext.pendingEvent!)
+                    return .unusualExecutionEvent(executionContext.pendingEvent!)
+                }
+                return .running
+            },
+            { [self] _ in
+                let sync = Synchronize(
+                    aliasMap: [
+                        "input": "output",
+                        "output": "contents"
+                    ],
+                    source: fileContext,
+                    destination: executionContext,
+                )
+                
+                switch sync.process() {
+                case .notAvailable:
+                    return .localBreak  // short-circuit tick
+                    
+                case .eof:
+                    return .nonLocalBreak(2)
+                    
+                case .proceed:
+                    break  // continue tick
+                    
+                case .unusualExecutionEvent:
+                    assert(executionContext.pendingEvent != nil)
+                    return .unusualExecutionEvent(executionContext.pendingEvent!)
+                }
+                
+                return .localBreak
+            },
+        ])
+    }
+    
+    @inline(__always)
+    private func produceMainLoop () -> LintTable.Steppable {
+        return LintTable.Loop(lints: [
+            { [self] in $0.pushSuboperation(table: produceTickFlow()); return .skipYield },
+//            { _ in print("Looping..."); return .running },
+            { [self] _ in executionContext.endTick(); return .completed }, // continue to loop
+        ], identifier: 2)
+    }
+    
+    @inline(__always)
+    private func produceRun () -> LintArray {
+        return [
+            { _ in print("run"); return .running },
+            { [self] _ in executionContext.ensure("contents", defaultValue: [String]()); return .running },
+            
+            { [self] in $0.pushSuboperation(table: produceMainLoop()); return .skipYield  },
+            
+            { [self] _ in readFiles.finalize(); return .running },
+            { [self] _ in skipOutput.finalize(); return .completed },
+        ]
+    }
+    
+    
+    @inline(__always)
+    func runx() -> OperationState {
         print("run")
         executionContext.ensure("contents", defaultValue: [String]())
-        
+
         mainLoop: while true {
             // ✅ Tick flow — one run per outer loop cycle
             tickFlow: repeat {
