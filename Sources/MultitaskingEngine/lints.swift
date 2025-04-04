@@ -174,7 +174,7 @@ public class ManualLintRunner: LintRunner {
                 return execute()
             }
             return .completed
-        case .suspended, .unusualExecutionEvent:
+        case .unusualExecutionEvent:
             // Exit early if a lint signals suspension or an error.
             return result
         default:

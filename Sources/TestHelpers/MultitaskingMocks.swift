@@ -9,7 +9,7 @@
 
 final class MockOperation:OperationExecutable, @unchecked Sendable {
     var executionFlags: UInt64 = 0
-    var state: MultitaskingEngine.OperationState = .suspended
+    var state: MultitaskingEngine.OperationState = .initialization
     var startTime: ContinuousClock.Instant = .now
     var lastProcessed: UInt = 0
     let operationName: String

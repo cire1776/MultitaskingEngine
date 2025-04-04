@@ -101,7 +101,7 @@ actor OperationScheduler: OperationScheduling {
             }
             // ✅ Only keep operations that aren't completed or aborted
             switch operation.state {
-            case .completed, .unusualExecutionEvent(.abort(_)), .suspended:
+            case .completed, .unusualExecutionEvent(.abort(_)):
                 break
                 // Skip adding this operation to the new queue
             default:

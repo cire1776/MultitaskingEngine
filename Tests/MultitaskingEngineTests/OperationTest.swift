@@ -15,7 +15,7 @@ final class OperationTest: AsyncSpec {
            let operation = MockOperation(operationName: "CompletingOperation", states: [.running, .completed])
             
             /// state is initial suspended
-            expect(operation.state).to(equal(.suspended))
+            expect(operation.state).to(equal(.initialization))
             
             _ = operation.execute()
             expect(operation.state).to(equal(.running))
@@ -169,16 +169,6 @@ final class OperationTest: AsyncSpec {
                 }
                 it("iterates through all lints and returns .completed") {
                     expect(runner.execute()).to(equal(.completed))
-                }
-            }
-            
-            context("when a lint returns .suspended") {
-                beforeEach {
-                    dummyProvider.table = LintTable.Sequential(lints: [
-                        { _ in return .running },
-                        { _ in return .suspended },
-                        { _ in return .completed }
-                    ])
                 }
             }
             

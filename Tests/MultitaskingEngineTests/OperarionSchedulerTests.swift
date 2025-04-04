@@ -16,7 +16,7 @@ final class OperationSchedulerTests: AsyncSpec {
         describe("OperationScheduler") {
             it("marks operations for yield if they exceed execution time limit") {
                 let scheduler = OperationScheduler()
-                let operation = MockOperation(operationName: "LongRunningOperation", states: [.suspended, .running])
+                let operation = MockOperation(operationName: "LongRunningOperation", states: [.initialization, .running])
 
                 _ = await scheduler.addOperation(operation)
 
@@ -32,34 +32,30 @@ final class OperationSchedulerTests: AsyncSpec {
             it("removes completed and aborted operations while maintaining active ones") {
                 let scheduler = OperationScheduler()
 
-                let activeOp = MockOperation(operationName: "ActiveOperation", states: [.suspended, .running, .running])
-                let completedOp = MockOperation(operationName: "CompletedOperation", states: [.suspended, .running, .completed])
-                let abortedOp = MockOperation(operationName: "AbortedOperation", states: [.unusualExecutionEvent(.abort("Fatal error"))])
-                let suspendedOp = MockOperation(operationName: "SuspendedOperation", states: [.suspended])
-
+                let activeOp = MockOperation(operationName: "ActiveOperation", states: [.initialization, .running, .running])
+                let completedOp = MockOperation(operationName: "CompletedOperation", states: [.initialization, .running, .completed])
+                let abortedOp = MockOperation(operationName: "AbortedOperation", states: [.initialization,.running,.unusualExecutionEvent(.abort("Fatal error"))])
+ 
                 _ = await scheduler.addOperation(activeOp)
                 _ = await scheduler.addOperation(completedOp)
                 _ = await scheduler.addOperation(abortedOp)
-                _ = await scheduler.addOperation(suspendedOp)
-
+ 
                 // ✅ Limit loops to prevent infinite waiting
                 var attempt = 0
                 while activeOp.execute() != .running, attempt < 10 { attempt += 1 }
                 attempt = 0
                 while completedOp.execute() != .completed, attempt < 10 { attempt += 1 }
                 attempt = 0
-                while suspendedOp.execute() != .suspended, attempt < 10 { attempt += 1 }
-                _ = abortedOp.execute()
+                while abortedOp.execute() != .unusualExecutionEvent(.abort("Fatal error")), attempt < 10 { attempt += 1 }
+                attempt = 0
                 await scheduler._schedule()
 
                 let isCompletedOpInQueue = await scheduler._contains(completedOp)
                 let isAbortedOpInQueue = await scheduler._contains(abortedOp)
                 let isActiveOpInQueue = await scheduler._contains(activeOp)
-                let isSuspendedOpInQueue = await scheduler._contains(suspendedOp)
 
-                expect(isCompletedOpInQueue).to(beFalse())  // ✅ Should be removed
-                expect(isAbortedOpInQueue).to(beFalse())  // ✅ Should be removed
-                expect(isSuspendedOpInQueue).to(beFalse())  // ✅ Should be removed
+                expect(isCompletedOpInQueue).to(beFalse())
+                expect(isAbortedOpInQueue).to(beFalse())
                 expect(isActiveOpInQueue).to(beTrue())  // ✅ Should still be in queue
 
                 // ✅ Stop OS after the test
@@ -71,7 +67,7 @@ final class OperationSchedulerTests: AsyncSpec {
 
                 let op1 = MockOperation(operationName: "Op1", states: [.running])
                 let op2 = MockOperation(operationName: "Op2", states: [.running])
-                let op3 = MockOperation(operationName: "Op3", states: [.suspended, .running])
+                let op3 = MockOperation(operationName: "Op3", states: [.initialization, .running])
 
                 _ = await scheduler.addOperation(op1)
                 _ = await scheduler.addOperation(op2)

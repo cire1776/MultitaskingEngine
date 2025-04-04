@@ -29,15 +29,6 @@ class operationManagerTests: AsyncSpec {
                 expect(operation.execute()).to(equal(.completed))
             }
             
-            it("suspends and resumes execution") {
-                let operation = MockOperation(operationName: "SuspendingOperation", states: [.firstRun, .suspended, .running, .completed])
-                
-                expect(operation.execute()).to(equal(.firstRun))  // First step: running
-                expect(operation.execute()).to(equal(.suspended))  // Second step: suspends
-                expect(operation.execute()).to(equal(.running))  // Resumes execution
-                expect(operation.execute()).to(equal(.completed))  // Completes
-            }
-            
             it("returns a warning message") {
                 let operation = MockOperation(operationName: "WarningOperation", states: [.firstRun, .unusualExecutionEvent(.warning("Low disk space")), .completed])
                 

@@ -6,7 +6,6 @@ public enum OperationState: Equatable {
     case firstRun
     case running
     case skipYield
-    case suspended          // yield
     case waitingForReturn   // ;
     case completed          // .
     case localBreak
@@ -92,7 +91,7 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
             }
             self.state = .completed
             return .completed
-        case .suspended, .unusualExecutionEvent:
+        case .unusualExecutionEvent:
             self.state = result
             return result
         case .initialization, .waitingForReturn:
