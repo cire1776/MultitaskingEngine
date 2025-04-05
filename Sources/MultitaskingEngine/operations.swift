@@ -27,7 +27,7 @@ enum ExecutionFlags {
 protocol OperationExecutable: AnyObject, Sendable {
     var operationName: String { get }
     var operationID: Int { get }
-    
+   
     var executionFlags: UInt64 { get set }  // Flags for execution control
     var state: OperationState { get set }
     var startTime: ContinuousClock.Instant { get set }
