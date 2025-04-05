@@ -4,6 +4,28 @@
 //
 //  Created by Eric Russell on 3/28/25.
 //
+/*
+ ULang Hension:
+
+ => {
+     ( baseDir ≈ "/tmp/myfolder" )
+     from directory
+     -> readFiles
+     -> skip "output.txt"
+     -> processEachFile
+     -> sync "output" into "contents"
+     -> message ≈ "Concatenation complete! Output saved in: output.txt".
+ } -> store contents
+
+ define flow processFile => {
+     reading line from file
+     -> terminate: line
+     -> print: line
+     -> add line to buffer: output.
+ } catch error {
+     handleFileError(error, filename)
+ }
+ */
 
 import Foundation
 
