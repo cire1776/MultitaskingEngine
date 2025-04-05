@@ -20,6 +20,8 @@ class ReadLineFromFile: Comprehension.Entity {
     private var hasInitialized = false
     private var buffer = Data()
 
+    public var subscriptions: SubscriptionMask = .max
+
     init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"

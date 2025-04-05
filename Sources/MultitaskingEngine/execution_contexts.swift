@@ -236,3 +236,28 @@ extension StreamExecutionContext {
         return output
     }
 }
+
+public typealias SubscriptionMask = UInt32
+
+public class SubscriptionStreamExecutionContext: StreamExecutionContext, @unchecked Sendable {
+    private let streamFlags: [String: SubscriptionMask]
+   
+    public init(streamFlags: [String : SubscriptionMask]?=nil) {
+        self.streamFlags = streamFlags ?? [:]
+    }
+    
+    subscript(_ names: String...) -> SubscriptionMask {
+        var result: SubscriptionMask = 0
+        
+        for name in names {
+            result |= streamFlags[name] ?? 0
+        }
+        
+        return result
+    }
+    
+    private var dynamicVariables: [String: VariableStorage] = [:]
+    private let dynamicLock = NSLock()
+    
+    override func endTick() {  }
+}

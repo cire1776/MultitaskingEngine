@@ -12,6 +12,8 @@ public class Synchronize: Comprehension.Entity {
     private var sourceContext: StreamExecutionContext
     private var destinationContext: StreamExecutionContext
     
+    public var subscriptions: SubscriptionMask = .max
+
     public init(
         aliasMap: [String: String] = [:],
         source: StreamExecutionContext,

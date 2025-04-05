@@ -9,6 +9,8 @@ public class Print: Comprehension.Entity {
     let inputStream: String
     // no output
     
+    public var subscriptions: SubscriptionMask = .max
+    
     public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"

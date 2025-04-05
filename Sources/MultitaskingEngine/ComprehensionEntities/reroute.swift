@@ -13,6 +13,8 @@ class RerouteEntity: Comprehension.Entity {
     let outputStream: String
     var executionContext: StreamExecutionContext
 
+    public var subscriptions: SubscriptionMask = .max
+    
     init(aliasMap: [String: String], executionContext: StreamExecutionContext) {
         self.aliasMap = aliasMap
         self.inputStream = aliasMap["input"] ?? "input"

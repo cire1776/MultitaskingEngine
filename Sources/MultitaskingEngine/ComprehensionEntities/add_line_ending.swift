@@ -14,6 +14,8 @@ public class AddLineEnding: Comprehension.Entity {
         self.inputStream = aliasMap["input"] ?? "input"
     }
    
+    public var subscriptions: SubscriptionMask = .max
+
     public func initialize() {  }
     
     public func process() -> EntityResult {

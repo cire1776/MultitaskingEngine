@@ -13,6 +13,41 @@ public enum EntityResult: Equatable {
     case eof
     case unusualExecutionEvent
 }
+
+final public class Subscriptions {
+    public private(set) var exhausted: SubscriptionMask = 0
+    private var _available: SubscriptionMask = 0
+    
+    public var available: SubscriptionMask {
+        get { _available & ~exhausted }
+    }
+    
+    @inline(__always)
+    public func areAllAvailable(_ mask: SubscriptionMask) -> Bool {
+        (self.available & mask) == mask
+    }
+    
+    @inline(__always)
+    public func areAllExhausted() -> Bool {
+        self.exhausted == .max
+    }
+
+    @inline(__always)
+    public func publish(_ mask: SubscriptionMask) {
+        _available |= (mask & ~exhausted)
+    }
+    
+    @inline(__always)
+    public func unpublish(_ mask: SubscriptionMask) {
+        _available &= ~mask
+    }
+    
+    @inline(__always)
+    public func exhaust(_ mask: SubscriptionMask) {
+        exhausted |= mask
+    }
+}
+
 public enum Comprehension {
     protocol Common: AnyObject, LintProvider {
         var executionContext: StreamExecutionContext { get }
@@ -25,6 +60,8 @@ public enum Comprehension {
     }
     
     protocol Standard: Common {  }
+    
+    protocol Subscription: Common {  }
     
     final class Instance: RunnableLintProvider {
         let blueprintName: String
@@ -49,11 +86,19 @@ public enum Comprehension {
     }
     
     public protocol Entity {
+        var subscriptions: SubscriptionMask { get }
     }
 }
 
 extension Comprehension.Standard {
     public var operationName: String {
         "Comprehension_\(String(format: "%X",operationID))"
+    }
+}
+
+
+extension Comprehension.Subscription {
+    public var operationName: String {
+        "Comprehension_S_\(String(format: "%X",operationID))"
     }
 }

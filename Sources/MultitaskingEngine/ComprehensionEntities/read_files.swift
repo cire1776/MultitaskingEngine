@@ -14,6 +14,8 @@ final class ReadFiles: Comprehension.Entity {
     private let executionContext: StreamExecutionContext
     private var enumerator: FileManager.DirectoryEnumerator?
 
+    public var subscriptions: SubscriptionMask = .max
+    
     init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext) {
         self.filenameStream = aliasMap["filename"] ?? "filename"
         self.pathnameStream = aliasMap["pathname"] ?? "pathname"

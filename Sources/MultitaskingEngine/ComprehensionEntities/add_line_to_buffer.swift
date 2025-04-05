@@ -10,6 +10,8 @@ public class AddLineToBuffer: Comprehension.Entity {
     let inputStream: String
     let outputStream: String
     
+    public var subscriptions: SubscriptionMask = .max
+    
     init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
