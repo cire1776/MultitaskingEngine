@@ -46,8 +46,9 @@ final class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sen
         self.executionContext = executionContext ?? SubscriptionStreamExecutionContext(
             streamFlags: [
                 "filename": 0x1,
-                "output":0x2,
-                "contents": 0x4,
+                "pathname": 0x2,
+                "output":   0x4,
+                "contents": 0x8,
             ]
         )
         
@@ -68,8 +69,7 @@ final class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sen
         
         self.table = LintTable.Sequential(lints:[
             { _ in self.initialize() ; return .running },
-            { [self] in $0.pushSuboperation(table: LintTable.Sequential(lints: produceRun())); return .skipYield },
-            { _ in self.finalize() ; return .completed },
+            { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop()); return .skipYield },
             { _ in self.finalize() ; return .completed },
         ])
     }
@@ -92,20 +92,25 @@ final class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sen
         skipOutput.finalize()
     }
     
-    
     @inline(__always)
     private func produceTickFlow () -> LintTable.Steppable {
         let fileContext = StreamExecutionContext()
         
-        return LintTable.Sequential(lints: [
-            { [self] _ in
+        let subscriptions = Subscriptions()
+        subscriptions.publish(0x7)
+        
+        let readFilesBlock = LintTable.Sequential(lints: [
+            // Data Sources don't receive subscriptions
+            { [/*unowned*/ self, subscriptions] _ in
+                let outputStreams: SubscriptionMask = 0x3
+                
                 switch readFiles.next() {
                 case .notAvailable:
-                    return .localBreak  // short-circuit tick
-                case .eof:
-                    return .nonLocalBreak(2)
+                    subscriptions.unpublish(outputStreams)
+                 case .eof:
+                    subscriptions.exhaust(outputStreams)
                 case .proceed:
-                    break  // continue tick
+                    subscriptions.publish(outputStreams)
                 case .unusualExecutionEvent:
                     assert(executionContext.pendingEvent != nil)
                     return .unusualExecutionEvent(executionContext.pendingEvent!)
@@ -113,100 +118,142 @@ final class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sen
                 
                 return .running
             },
-            { [self] _ in
-                switch skipOutput.include() {
-                case .notAvailable:
-                    return .localBreak  // short-circuit tick
+        ])
+        
+        let skipOutputBlock = {
+            let inputSubscriptions: SubscriptionMask = 0x1
+            let outputStreams: SubscriptionMask = 0x3
+            
+            return LintTable.Sequential(lints: [
+                { [subscriptions] _ in
+                    guard !subscriptions.areAllExhausted() else { return .nonLocalBreak(2) }
                     
-                case .eof:
+                    guard subscriptions.areAllAvailable(inputSubscriptions) else {
+                        subscriptions.unpublish(outputStreams)
+                        return .localBreak
+                    }
+                    
+                    return .running
+                },
+                { [/*unowned*/ self, subscriptions] _ in
+                    switch skipOutput.include() {
+                    case .notAvailable:
+                        subscriptions.unpublish(outputStreams)
+                    case .eof:
+                        subscriptions.unpublish(outputStreams)
+                        return .unusualExecutionEvent(.warning("Filter emitted .eof unexpectedly"))
+                    case .proceed:
+                        break  // continue tick
+                    case .unusualExecutionEvent:
+                        assert(executionContext.pendingEvent != nil)
+                        return .unusualExecutionEvent(executionContext.pendingEvent!)
+                    }
+                    
+                    return .running
+                },
+            ])
+        }()
+        
+        let processFileBlock = {
+            let inputSubscriptions: SubscriptionMask = 0x2
+            let outputStreams: SubscriptionMask = 0x4
+            
+            return LintTable.Sequential(lints: [
+                { [subscriptions] _ in
+                    guard !subscriptions.areAllExhausted() else { return .nonLocalBreak(2) }
+                    
+                    guard subscriptions.areAllAvailable(inputSubscriptions) else {
+                        subscriptions.unpublish(outputStreams)
+                        return .localBreak
+                    }
+                    
+                    return .running
+                },
+                { [/*unowned*/ self, subscriptions, fileContext] _ in
+                    guard let pathname = try? executionContext["pathname"].get()! else {
+                        return .unusualExecutionEvent(.exception("subscription access error."))
+                    }
+                    
+                    fileContext["filename"] = .success(pathname)
+                    
+                    let processFile = Comprehension_ProcessFile(executionContext: fileContext)
+                    let result = processFile.execute()
+                    
+                    switch result {
+                    case .notAvailable:
+                        subscriptions.unpublish(outputStreams)
+                    case .eof:
+                        subscriptions.exhaust(outputStreams)
+                    case .proceed:
+                        break
+                    case .unusualExecutionEvent:
+                        executionContext.triggerUnusualEvent(fileContext.pendingEvent!)
+                        return .unusualExecutionEvent(executionContext.pendingEvent!)
+                    }
+                    return .running
+                },
+            ])
+        }()
+        
+        let synchronizeBlock = {
+            let inputSubscriptions: SubscriptionMask = 0x4
+            let outputStreams: SubscriptionMask = 0x8
+
+            return LintTable.Sequential(lints: [
+                { [subscriptions] _ in
+                    guard !subscriptions.areAllExhausted() else { return .nonLocalBreak(2) }
+
+                    guard subscriptions.areAllAvailable(inputSubscriptions) else {
+                        subscriptions.unpublish(outputStreams)
+                        return .localBreak
+                    }
+                    
+                    return .running
+                },
+                { [/*unowned*/ self,subscriptions] _ in
+                    
+                    guard subscriptions.areAllAvailable(inputSubscriptions) else {                    subscriptions.unpublish(outputStreams)
+                        return .running
+                    }
+                    
+                    let sync = Synchronize(
+                        aliasMap: [
+                            "input": "output",
+                            "output": "contents"
+                        ],
+                        source: fileContext,
+                        destination: executionContext,
+                    )
+                    
+                    switch sync.process() {
+                    case .notAvailable:
+                        subscriptions.unpublish(outputStreams)
+                    case .eof:
+                        subscriptions.exhaust(outputStreams)
+                    case .proceed:
+                        break  // continue tick
+                    case .unusualExecutionEvent:
+                        assert(executionContext.pendingEvent != nil)
+                        return .unusualExecutionEvent(executionContext.pendingEvent!)
+                    }
+                    
                     return .nonLocalBreak(2)
-                    
-                case .proceed:
-                    break  // continue tick
-                    
-                case .unusualExecutionEvent:
-                    assert(executionContext.pendingEvent != nil)
-                    return .unusualExecutionEvent(executionContext.pendingEvent!)
-                }
-                
-                return .running
-            },
-            { [self] _ in
-                guard let pathname = try? executionContext["pathname"].get() else {
-                    fileContext.triggerUnusualEvent(.exception("Pathname not provided"))
-                    return .unusualExecutionEvent(executionContext.pendingEvent!)
-                }
-                
-                fileContext["filename"] = .success(pathname)
-                
-                let processFile = Comprehension_ProcessFile(executionContext: fileContext)
-                let result = processFile.execute()
-                                
-                switch result {
-                case .notAvailable:
-                    return .localBreak  // short-circuit tick
-                    
-                case .eof:
-                    return .nonLocalBreak(2)
-                    
-                case .proceed:
-                    break  // continue tick
-                    
-                case .unusualExecutionEvent:
-                    executionContext.triggerUnusualEvent(fileContext.pendingEvent!)
-                    return .unusualExecutionEvent(executionContext.pendingEvent!)
-                }
-                return .running
-            },
-            { [self] _ in
-                let sync = Synchronize(
-                    aliasMap: [
-                        "input": "output",
-                        "output": "contents"
-                    ],
-                    source: fileContext,
-                    destination: executionContext,
-                )
-                
-                switch sync.process() {
-                case .notAvailable:
-                    return .localBreak  // short-circuit tick
-                    
-                case .eof:
-                    return .nonLocalBreak(2)
-                    
-                case .proceed:
-                    break  // continue tick
-                    
-                case .unusualExecutionEvent:
-                    assert(executionContext.pendingEvent != nil)
-                    return .unusualExecutionEvent(executionContext.pendingEvent!)
-                }
-                
-                return .localBreak
-            },
+                },
+            ])}()
+        
+        return LintTable.Sequential(lints: [
+            { [readFilesBlock] in $0.pushSuboperation(table: readFilesBlock); return .skipYield },
+            { [skipOutputBlock] in $0.pushSuboperation(table: skipOutputBlock); return .skipYield },
+            { [processFileBlock] in $0.pushSuboperation(table: processFileBlock); return .skipYield },
+            { [synchronizeBlock] in $0.pushSuboperation(table: synchronizeBlock); return .skipYield },
         ])
     }
     
     @inline(__always)
     private func produceMainLoop () -> LintTable.Steppable {
         return LintTable.Loop(lints: [
-            { [self] in $0.pushSuboperation(table: produceTickFlow()); return .skipYield },
-//            { _ in print("Looping..."); return .running },
-            { [self] _ in executionContext.endTick(); return .completed }, // continue to loop
+            { [/*unowned*/ self] in $0.pushSuboperation(table: produceTickFlow()); return .skipYield },
+            { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
         ], identifier: 2)
-    }
-    
-    @inline(__always)
-    private func produceRun () -> LintArray {
-        return [
-            { _ in print("run"); return .running },
-            { [self] _ in executionContext.ensure("contents", defaultValue: [String]()); return .running },
-            
-            { [self] in $0.pushSuboperation(table: produceMainLoop()); return .skipYield  },
-            
-            { [self] _ in readFiles.finalize(); return .running },
-            { [self] _ in skipOutput.finalize(); return .completed },
-        ]
     }
 }
