@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
+final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unchecked Sendable {
     let executionContext: StreamExecutionContext
     
     var table: LintTable.Steppable
@@ -15,13 +15,14 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
     private let readFiles: ReadFiles
     private let skipOutput: SkipFilter
     
+    public var operationID: Int
     public var operationName: String {
-        "Comprehension_1A5D27B3"
+        "Comprehension_\(String(format: "%X", operationID))"
     }
     
     init(executionContext: StreamExecutionContext?=nil) {
         self.executionContext = executionContext ?? StreamExecutionContext()
-        
+        self.operationID = Int("1A5D27B3", radix: 16)!
         readFiles = ReadFiles(
             aliasMap: ["output": "filename"],
             executionContext: self.executionContext
@@ -43,8 +44,8 @@ final class Comprehension_1A5D27B3: LintProvider,  @unchecked Sendable {
         ])
     }
     
-    public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> ComprehensionInstance {
-        return ComprehensionInstance(blueprint: self,preinitializationLint: preinitialization_lint, executionContext: executionContext)
+    public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {
+        return Comprehension.Instance(blueprint: self,preinitializationLint: preinitialization_lint, executionContext: executionContext)
     }
     
     @inline(__always)

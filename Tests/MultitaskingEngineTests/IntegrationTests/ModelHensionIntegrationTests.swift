@@ -208,7 +208,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
         describe("Model Hension Blueprint Instantiation and Execution using ManualLintRunner") {
             var executionContext: StreamExecutionContext!
             var blueprint: Comprehension_1A5D27B3!
-            var modelInstance: ComprehensionInstance!
+            var modelInstance: Comprehension.Instance!
             var runner: ManualLintRunner!
             let testDir = "/tmp/model-hension1"
             
@@ -279,7 +279,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
         describe("Model Hension Blueprint Instantiation and Execution using Operation Runner") {
             var executionContext: StreamExecutionContext!
             var blueprint: Comprehension_1A5D27B3!
-            var modelInstance: ComprehensionInstance!
+            var modelInstance: Comprehension.Instance!
             var operation: MultitaskingEngine.Operation!
             let testDir = "/tmp/model-hension"
             
@@ -364,7 +364,7 @@ final class ModelHensionIntegrationTests: AsyncSpec {
         describe("Model Hension Integration using OperationManager") {
             var executionContext: StreamExecutionContext!
             var blueprint: Comprehension_1A5D27B3!
-            var modelInstance: ComprehensionInstance!
+            var modelInstance: Comprehension.Instance!
             var operation: MultitaskingEngine.Operation! // Fully qualified to avoid ambiguity.
             var operationManager: OperationManager!
             let testDir = "/tmp/model-hension-OM-test"
