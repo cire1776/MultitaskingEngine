@@ -32,7 +32,6 @@ extension HeapExecutionContext {
         self.pendingEvent = event
         self.shouldYield = true
     }
-
 }
 
 enum EC {
