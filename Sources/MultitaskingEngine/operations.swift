@@ -39,6 +39,8 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     public let operationID: Int = UUID().hashValue
     public let operationName: String
     
+    public var reference: AnyObject
+    
     var executionFlags: UInt64 = 0
     var state: OperationState = .initialization
     var startTime: ContinuousClock.Instant = .now
@@ -51,6 +53,7 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     
     init(name: String?=nil, provider: RunnableLintProvider) {
         self.table = provider.table
+        self.reference = provider
         self.operationName = name ?? "~unnamed~"
     }
     

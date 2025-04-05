@@ -125,7 +125,7 @@ extension LintTable {
     }
 }
 
-public protocol LintProvider {
+public protocol LintProvider: AnyObject {
     var table: LintTable.Steppable { get }
     var operationName: String { get }
 }
@@ -133,6 +133,8 @@ public protocol LintProvider {
 public protocol LintRunner: AnyObject {
     var table: LintTable.Steppable { get set }
     var lintCounter: Int { get set }
+    
+    var reference: AnyObject { get set }
     
     var previousTableNode: LintTable.Node? { get set }
 
@@ -175,10 +177,13 @@ public class ManualLintRunner: LintRunner {
     public var table: LintTable.Steppable
     public var lintCounter: Int = 0
     
+    public var reference: AnyObject
+    
     public var previousTableNode: LintTable.Node? = nil
     
     public init(provider: RunnableLintProvider) {
         self.table = provider.table
+        self.reference = provider // held to prevent disposal
     }
    
     public func executeAll() async -> OperationState {
