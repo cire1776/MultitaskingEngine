@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Data Source: Read Line from File
-class ReadLineFromFile {
+class ReadLineFromFile: Comprehension.Entity {
     let inputStream: String
     let outputStream: String
     

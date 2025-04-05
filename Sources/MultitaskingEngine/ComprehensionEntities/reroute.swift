@@ -6,7 +6,7 @@
 //
 
 
-class RerouteEntity {
+class RerouteEntity: Comprehension.Entity {
     private var aliasMap: [String: String]
 
     let inputStream: String

@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 3/13/25.
 //
 
-struct SkipFilter {
+struct SkipFilter: Comprehension.Entity {
     private let valuesToSkip: Set<String>
     private let stream: String
     private let executionContext: StreamExecutionContext

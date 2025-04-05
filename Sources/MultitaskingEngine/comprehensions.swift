@@ -48,6 +48,8 @@ public enum Comprehension {
         }
     }
     
+    public protocol Entity {
+    }
 }
 
 extension Comprehension.Standard {
