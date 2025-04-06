@@ -141,7 +141,6 @@ extension Comprehension.Standard {
     }
 }
 
-
 extension Comprehension.Subscription {
     public var operationName: String {
         "Comprehension_S_\(String(format: "%X",operationID))"
