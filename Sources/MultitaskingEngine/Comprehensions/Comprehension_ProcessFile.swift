@@ -96,8 +96,6 @@ final class Comprehension_ProcessFile {
         readLine.finalize()
         storeLine.finalize()
         
-        print("Concatenation complete! Output saved in: output.txt")
-        
         return .proceed
     }
 }
