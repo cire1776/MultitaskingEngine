@@ -41,7 +41,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     
     public let fileContext = StreamExecutionContext()
     
-    public var subscriptions = Subscriptions()
+    public var subscriptions = Subscriptions(sources: 0x01)
     
     public let mainLoopID: Int = 2
 
