@@ -83,7 +83,7 @@ final class OperationTest: AsyncSpec {
                 let subLints: LintTable.Sequential = .init(lints: [
                     { _ in print("in 'C'"); output.append("C"); return .running },
                     { _ in output.append("D"); return .completed }
-                ])
+                ], identifier: 1000)
                 
                 var operation: Operation! = nil  // placeholder for capture
                 operation = Operation(name: "top", provider: DummyLintProvider(table: LintTable.Sequential(lints: [
@@ -91,7 +91,7 @@ final class OperationTest: AsyncSpec {
                     { _ in output.append("B"); return .running },
                     { $0.pushSuboperation(table: subLints); return .skipYield },
                     { _ in output.append("E"); return .completed }
-                ])))
+                ], identifier: 500)))
                 
                 var result: OperationState = .running
                 var safety = 0

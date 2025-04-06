@@ -77,7 +77,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
             { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop()); return .skipYield },
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
             { _ in self.finalize() ; return .completed },
-        ])
+        ], identifier: 500)
     }
     
     public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {
