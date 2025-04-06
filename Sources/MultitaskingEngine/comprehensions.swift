@@ -53,6 +53,11 @@ final public class Subscriptions {
     public func exhaust(_ mask: SubscriptionMask) {
         exhausted |= mask
     }
+    
+    @inline(__always)
+    public func reset() {
+        self._available = 0
+    }
 }
 
 final public class FlowEntity {
