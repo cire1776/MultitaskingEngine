@@ -48,6 +48,35 @@ final public class Subscriptions {
     }
 }
 
+final public class FlowEntity {
+    public static func graphFlow(_ comprehension: Comprehension.Subscription, for entities: [(LintTable.Steppable?) -> LintTable.Steppable]) -> FlowEntity? {
+        var current: FlowEntity? = nil
+        for entity in entities.reversed() {
+            current = FlowEntity(root: nil, next: current, table: entity(current?.table))
+        }
+        
+        let root = current
+        current = root?.next
+        while current != nil {
+            current?.root = root
+            current = current?.next
+        }
+        
+        return root
+    }
+    
+    public private(set) var root: FlowEntity?
+    public let next: FlowEntity?
+    
+    public let table: LintTable.Steppable
+
+    public init(root: FlowEntity?, next: FlowEntity?, table: LintTable.Steppable) {
+        self.root = root
+        self.next = next
+        self.table = table
+    }
+}
+
 public enum Comprehension {
     public protocol Common: AnyObject, LintProvider {
         var executionContext: StreamExecutionContext { get }
