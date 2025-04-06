@@ -81,12 +81,14 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
         case .completed:
             if previousTableNode != nil {
                 popSuboperation()
-                break
+                self.lintCounter += 1
+                return .running
             }
             return .completed
         case .localBreak:
             if self.previousTableNode != nil {
                 popSuboperation()
+                self.lintCounter += 1
                 return await execute()
             }
             return .completed
@@ -95,13 +97,16 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
         case .nonLocalContinue(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                return await execute()
+                self.state
+                return .running
             }
             self.state = .completed
             return .completed
         case .nonLocalBreak(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
+                popSuboperation()
+                self.lintCounter += 1
                 return await execute()
             }
             self.state = .running

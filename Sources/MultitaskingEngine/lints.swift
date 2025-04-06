@@ -81,7 +81,12 @@ extension LintTable {
             if runner.lintCounter >= self.lints.count {
                 runner.lintCounter = 0
             }
-            return await lints[runner.lintCounter](runner)
+            let result = await lints[runner.lintCounter](runner)
+            if result == .completed {
+                runner.lintCounter = -1
+                return .running
+            }
+            return result
         }
     }
     
@@ -153,17 +158,24 @@ extension LintRunner {
 
     @inline(__always)
     public func popSuboperation(identifier: Int = 0) {
-        var current = self.previousTableNode
-        
-        // Traverse until a node with a matching identifier is found.
-        while let node = current, current?.table.identifier != identifier {
-            current = node.previous
+        var target = self.previousTableNode
+
+        if identifier != 0 {
+            var current = self.previousTableNode
+            
+            // Traverse until a node with a matching identifier is found.
+            while identifier != 0,
+                  let node = current,
+                  current?.table.identifier != identifier {
+                current = node.previous
+            }
+            target = current
         }
         
-        if let target = current {
-           self.table = target.table
-           self.lintCounter = target.counter
-           self.previousTableNode = target.previous
+        if let target = target {
+            self.table = target.table
+            self.lintCounter = target.counter
+            self.previousTableNode = target.previous
             if identifier != 0 {
                 self.lintCounter += 1
             }
@@ -201,12 +213,14 @@ public class ManualLintRunner: LintRunner {
         case .completed:
             if previousTableNode != nil {
                 popSuboperation()
-                break
+                self.lintCounter += 1
+                return .running
             }
             return .completed
         case .localBreak:
             if self.previousTableNode != nil {
                 popSuboperation()
+                self.lintCounter += 1
                 return await execute()
             }
             return .completed
@@ -215,12 +229,14 @@ public class ManualLintRunner: LintRunner {
         case .nonLocalContinue(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                return await execute()
+                return .running
             }
             return .completed
         case .nonLocalBreak(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
+                popSuboperation()
+                self.lintCounter += 1
                 return await execute()
             }
             return .running

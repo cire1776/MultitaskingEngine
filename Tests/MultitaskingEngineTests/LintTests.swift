@@ -71,8 +71,8 @@ final class LintTests: AsyncSpec {
                         var count = 1
                         
                         let loop = LintTable.Loop(lints: [
-                            { _ in output.append("hello \(count)"); count += 1; return count < 3 ? .running : .completed },
-                            { _ in output.append("hello \(count)"); count += 1; return count < 3 ? .running : .completed },
+                            { _ in output.append("hello \(count)"); count += 1; return count < 3 ? .completed : .running },
+                            { _ in output.append("hello \(count)"); count += 1; return .localBreak },
                         ])
                         
                         let runner = ManualLintRunner(provider: DummyLintProvider(table: loop))
@@ -81,10 +81,10 @@ final class LintTests: AsyncSpec {
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["hello 1"]))
 
-                        result = await runner.execute()
+                        result = await runner.executeAll()
                         
                         expect(result).to(equal(.completed))
-                        expect(output).to(equal(["hello 1", "hello 2"]))
+                        expect(output).to(equal(["hello 1", "hello 2", "hello 3"]))
                     }
                     
                     it(".nonLocalContinue terminates a loop iteration like a non-local continue") {
@@ -98,6 +98,7 @@ final class LintTests: AsyncSpec {
                         let loop_middle: LintTable.Loop = .init(lints: [
                             { _ in output.append("middle"); return .running },
                             { $0.pushSuboperation(table: loop_inner); return .skipYield },
+                            { _ in output.append("bogus"); return .running },
                         ], identifier:  1)
                         
                         let loop_outer: LintTable.Loop = .init(lints: [
@@ -123,7 +124,7 @@ final class LintTests: AsyncSpec {
                         expect(result).to(equal(.running))
                         expect(output).to(equal(["outer first", "middle", "inner"]))
 
-                        result = await runner.execute()
+                        result = await runner.executeAll()
                         
                         expect(result).to(equal(.completed))
                         expect(output).to(equal(["outer first", "middle", "inner", "outer last"]))
