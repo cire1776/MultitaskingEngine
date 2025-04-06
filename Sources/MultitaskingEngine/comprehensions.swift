@@ -146,4 +146,35 @@ extension Comprehension.Subscription {
     public var operationName: String {
         "Comprehension_S_\(String(format: "%X",operationID))"
     }
+    
+    @inline(__always)
+    public func subscriptionGuard(
+        using inputSubscriptions: SubscriptionMask,
+        emitting outputStreams: SubscriptionMask) -> OperationState {
+        guard !subscriptions.areAllExhausted() else { return .nonLocalBreak(mainLoopID) }
+        
+        guard subscriptions.areAllAvailable(inputSubscriptions) else {
+            subscriptions.unpublish(outputStreams)
+            return .localBreak
+        }
+        
+        return .running
+    }
+    
+    @inline(__always)
+    public func dispatch(on result: EntityResult, emitting outputStreams: SubscriptionMask) -> OperationState {
+        switch result {
+        case .notAvailable:
+            subscriptions.unpublish(outputStreams)
+         case .eof:
+            subscriptions.exhaust(outputStreams)
+        case .proceed:
+            subscriptions.publish(outputStreams)
+        case .unusualExecutionEvent:
+            assert(executionContext.pendingEvent != nil)
+            return .unusualExecutionEvent(executionContext.pendingEvent!)
+        }
+        
+        return .running
+    }
 }
