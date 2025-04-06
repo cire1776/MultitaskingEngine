@@ -97,6 +97,8 @@ public enum Comprehension {
         var operationID: Int           { get }
         var operationName: String      { get }
         
+        var mainLoopID: Int            { get }
+        
         func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Instance
     }
     

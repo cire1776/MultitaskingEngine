@@ -20,6 +20,8 @@ class DummySubscription: Comprehension.Subscription {
     
     var subscriptions: MultitaskingEngine.Subscriptions
     
+    var mainLoopID: Int = 9999 // none actually used
+    
     init(ctx: StreamExecutionContext) {
         self.executionContext = ctx
         // Create a simple sequential lint table with one no‑op lint that returns .running.

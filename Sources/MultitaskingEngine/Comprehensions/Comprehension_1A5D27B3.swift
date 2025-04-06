@@ -42,6 +42,8 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
         "Comprehension_\(String(format: "%X", operationID))"
     }
     
+    var mainLoopID: Int = 2
+    
     init(executionContext: StreamExecutionContext?=nil) {
         self.executionContext = executionContext ?? StreamExecutionContext()
         self.operationID = Int("1A5D27B3", radix: 16)!
