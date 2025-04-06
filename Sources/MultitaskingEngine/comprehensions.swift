@@ -15,8 +15,15 @@ public enum EntityResult: Equatable {
 }
 
 final public class Subscriptions {
+    private var sources: SubscriptionMask = 0
     public private(set) var exhausted: SubscriptionMask = 0
     private var _available: SubscriptionMask = 0
+   
+    public init(sources: SubscriptionMask = .max) {
+        self.sources = sources
+        self.exhausted = 0
+        self._available = 0
+    }
     
     public var available: SubscriptionMask {
         get { _available & ~exhausted }
@@ -29,7 +36,7 @@ final public class Subscriptions {
     
     @inline(__always)
     public func areAllExhausted() -> Bool {
-        self.exhausted == .max
+        (self.exhausted & sources) == sources
     }
 
     @inline(__always)

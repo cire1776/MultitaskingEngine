@@ -15,7 +15,7 @@ final class SubscriptionStreamExecutionContextTests: AsyncSpec {
             var subscriptions: Subscriptions!
 
             beforeEach {
-                subscriptions = Subscriptions()
+                subscriptions = Subscriptions(sources: .max)
             }
 
             it("initially has no available subscriptions") {

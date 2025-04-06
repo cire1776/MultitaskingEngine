@@ -26,7 +26,7 @@ class DummySubscription: Comprehension.Subscription {
         self.table = LintTable.Sequential(lints: [
             { _ in return .running }
         ], identifier: 0)
-        subscriptions = .init()
+        self.subscriptions = Subscriptions()
     }
     
     func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
