@@ -49,7 +49,7 @@ final public class Subscriptions {
 }
 
 public enum Comprehension {
-    protocol Common: AnyObject, LintProvider {
+    public protocol Common: AnyObject, LintProvider {
         var executionContext: StreamExecutionContext { get }
         var table: LintTable.Steppable { get }
         
@@ -59,14 +59,16 @@ public enum Comprehension {
         func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Instance
     }
     
-    protocol Standard: Common {  }
+    public protocol Standard: Common {  }
     
-    protocol Subscription: Common {  }
+    public protocol Subscription: Common {
+        var subscriptions: Subscriptions { get set }
+    }
     
-    final class Instance: RunnableLintProvider {
+    final public class Instance: RunnableLintProvider {
         let blueprintName: String
         var executionContext: StreamExecutionContext
-        private(set) var table: LintTable.Steppable
+        public private(set) var table: LintTable.Steppable
         
         public var operationName: String {
             "\(blueprintName)__\(String(format: "%X", UUID().uuidString.hashValue))"

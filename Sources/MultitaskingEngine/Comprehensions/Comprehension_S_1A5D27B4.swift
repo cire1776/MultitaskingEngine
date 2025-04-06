@@ -29,15 +29,20 @@
 
 import Foundation
 
-final class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sendable {
-    let executionContext: StreamExecutionContext
-    var table: LintTable.Steppable
+
+final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sendable {
+    public let executionContext: StreamExecutionContext
+    public var table: LintTable.Steppable
     
     public var operationID: Int
     
-    private let readFiles: ReadFiles
-    private let skipOutput: SkipFilter
-
+    public let readFiles: ReadFiles
+    public let skipOutput: SkipFilter
+    
+    public let fileContext = StreamExecutionContext()
+    
+    public var subscriptions = Subscriptions()
+    
     init(executionContext: StreamExecutionContext?=nil) {
         guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
             fatalError("Expected a SubscriptionStreamExecutionContext!")

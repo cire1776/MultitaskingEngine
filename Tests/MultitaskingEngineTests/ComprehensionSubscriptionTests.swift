@@ -18,12 +18,15 @@ class DummySubscription: Comprehension.Subscription {
     // For a Subscription, the extension should prefix the operation name with "Comprehension_S_"
     var operationName: String = "Comprehension_S_0"
     
+    var subscriptions: MultitaskingEngine.Subscriptions
+    
     init(ctx: StreamExecutionContext) {
         self.executionContext = ctx
         // Create a simple sequential lint table with one no‑op lint that returns .running.
         self.table = LintTable.Sequential(lints: [
             { _ in return .running }
         ], identifier: 0)
+        subscriptions = .init()
     }
     
     func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
