@@ -193,11 +193,13 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         }, identifier: tickFlowID)
     }
     
+    lazy var tickFlow: LintTable.Steppable = produceTickFlow()
+    
     @inline(__always)
     private func produceMainLoop() -> LintTable.Steppable {
         return LintTable.Loop(lints: [
             { [/*unowned*/ self] _ in self.subscriptions.reset(); return .running },
-            { [/*unowned*/ self] in $0.pushSuboperation(table: produceTickFlow()); return .skipYield },
+            { [/*unowned*/ self] in $0.pushSuboperation(table: tickFlow); return .skipYield },
             { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
         ], identifier: mainLoopID)
     }

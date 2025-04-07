@@ -107,6 +107,14 @@ public enum Comprehension {
     
     public protocol Subscription: Common {
         var subscriptions: Subscriptions { get set }
+        @inline(__always)
+        func modifyTickLints(_ lints: inout LintArray)
+        
+        @inline(__always)
+        func produceTickFlow(flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
+
+        @inline(__always)
+        func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
     }
     
     final public class Instance: RunnableLintProvider {
@@ -136,19 +144,19 @@ public enum Comprehension {
     }
 }
 
-extension Comprehension.Standard {
-    public var operationName: String {
+public extension Comprehension.Standard {
+    var operationName: String {
         "Comprehension_\(String(format: "%X",operationID))"
     }
 }
 
-extension Comprehension.Subscription {
-    public var operationName: String {
+public extension Comprehension.Subscription {
+    var operationName: String {
         "Comprehension_S_\(String(format: "%X",operationID))"
     }
     
     @inline(__always)
-    public func subscriptionGuard(
+    func subscriptionGuard(
         using inputSubscriptions: SubscriptionMask,
         emitting outputStreams: SubscriptionMask) -> OperationState {
         guard !subscriptions.areAllExhausted() else { return .nonLocalBreak(mainLoopID) }
@@ -162,7 +170,7 @@ extension Comprehension.Subscription {
     }
     
     @inline(__always)
-    public func dispatch(on result: EntityResult, emitting outputStreams: SubscriptionMask) -> OperationState {
+    func dispatch(on result: EntityResult, emitting outputStreams: SubscriptionMask,at caller: Int?=nil) -> OperationState {
         switch result {
         case .notAvailable:
             subscriptions.unpublish(outputStreams)
@@ -170,11 +178,38 @@ extension Comprehension.Subscription {
             subscriptions.exhaust(outputStreams)
         case .proceed:
             subscriptions.publish(outputStreams)
+        case .pump(_):
+            subscriptions.publish(outputStreams)
         case .unusualExecutionEvent:
             assert(executionContext.pendingEvent != nil)
             return .unusualExecutionEvent(executionContext.pendingEvent!)
         }
         
         return .running
+    }
+    
+    @inline(__always)
+    func modifyTickLints(_ lints: inout LintArray) {  }
+    
+    @inline(__always)
+    func produceTickFlow(flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
+        var lints: LintArray = flows.map { block in
+            { $0.pushSuboperation(table: block($0)); return .skipYield }
+        }
+        
+        modifyTickLints(&lints)
+        
+        return LintTable.Sequential(lints: lints, identifier: self.tickFlowID)
+    }
+    
+    @inline(__always)
+    func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
+        return LintTable.Loop(lints: [
+            { [/*unowned*/ self] _ in self.subscriptions.reset(); return .running },
+            { [/*unowned*/ self] in
+                $0.pushSuboperation(table: produceTickFlow(flows: tickFlowEntityBlocks)); return .skipYield
+            },
+            { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
+        ], identifier: mainLoopID)
     }
 }
