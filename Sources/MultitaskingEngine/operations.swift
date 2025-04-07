@@ -97,7 +97,7 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
         case .nonLocalContinue(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
-                self.state
+                self.state = .running
                 return .running
             }
             self.state = .completed
