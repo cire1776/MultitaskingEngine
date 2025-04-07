@@ -255,9 +255,4 @@ public class SubscriptionStreamExecutionContext: StreamExecutionContext, @unchec
         
         return result
     }
-    
-    private var dynamicVariables: [String: VariableStorage] = [:]
-    private let dynamicLock = NSLock()
-    
-    override func endTick() {  }
 }
