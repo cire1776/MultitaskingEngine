@@ -42,7 +42,8 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
         "Comprehension_\(String(format: "%X", operationID))"
     }
     
-    var mainLoopID: Int = 2
+    public var mainLoopID: Int = 2
+    public var tickFlowID: Int = 1
     
     init(executionContext: StreamExecutionContext?=nil) {
         self.executionContext = executionContext ?? StreamExecutionContext()
@@ -182,7 +183,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                 
                 return .localBreak
             },
-        ])
+        ],identifier: tickFlowID)
     }
     
     @inline(__always)
@@ -191,7 +192,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
             { [self] in $0.pushSuboperation(table: produceTickFlow()); return .skipYield },
 //            { _ in print("Looping..."); return .running },
             { [self] _ in executionContext.endTick(); return .completed }, // continue to loop
-        ], identifier: 2)
+        ], identifier: mainLoopID)
     }
     
     @inline(__always)

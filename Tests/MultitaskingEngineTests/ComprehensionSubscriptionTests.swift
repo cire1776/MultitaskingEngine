@@ -20,7 +20,8 @@ class DummySubscription: Comprehension.Subscription {
     
     var subscriptions: MultitaskingEngine.Subscriptions
     
-    var mainLoopID: Int = 9999 // none actually used
+    var mainLoopID: Int = 9999 // not actually used
+    var tickFlowID: Int = 9991 // not actually used
     
     init(ctx: StreamExecutionContext) {
         self.executionContext = ctx

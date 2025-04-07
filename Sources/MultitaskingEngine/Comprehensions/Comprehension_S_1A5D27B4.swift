@@ -46,7 +46,8 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     private lazy var flowGraph = FlowEntity.graphFlow(self, for: flowEntities)
 
     public let mainLoopID: Int = 2
-
+    public let tickFlowID: Int = 1
+    
     init(executionContext: StreamExecutionContext?=nil) {
         guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
             fatalError("Expected a SubscriptionStreamExecutionContext!")
@@ -185,8 +186,11 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         let current = flowGraph
         
         return LintTable.Sequential(lints: flowEntities.map { block in
-            { $0.pushSuboperation(table: block(current?.next?.table)); return MultitaskingEngine.OperationState.skipYield }
-        }, identifier: 1)
+            {
+                $0.pushSuboperation(table: block(current?.next?.table))
+                return MultitaskingEngine.OperationState.skipYield
+            }
+        }, identifier: tickFlowID)
     }
     
     @inline(__always)
@@ -195,6 +199,6 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
             { [/*unowned*/ self] _ in self.subscriptions.reset(); return .running },
             { [/*unowned*/ self] in $0.pushSuboperation(table: produceTickFlow()); return .skipYield },
             { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
-        ], identifier: 2)
+        ], identifier: mainLoopID)
     }
 }
