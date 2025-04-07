@@ -48,6 +48,8 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     public let mainLoopID: Int = 2
     public let tickFlowID: Int = 1
     
+    public var pumper: Int?
+    
     init(executionContext: StreamExecutionContext?=nil) {
         guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
             fatalError("Expected a SubscriptionStreamExecutionContext!")

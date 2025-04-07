@@ -46,7 +46,7 @@ final class Comprehension_ProcessFile {
         executionLoop: while true {
             tickLoop: repeat {
                 switch readLine.next() {
-                case .proceed:
+                case .proceed, .pump(_):
                     break
                     
                 case .eof:
@@ -62,7 +62,7 @@ final class Comprehension_ProcessFile {
                 _ = printLine.process()
                 
                 switch addTerminator.process() {
-                case .proceed:
+                case .proceed, .pump(_):
                     break
                     
                 case .notAvailable:
@@ -76,7 +76,7 @@ final class Comprehension_ProcessFile {
                 }
                 
                 switch storeLine.process() {
-                case .proceed:
+                case .proceed, .pump(_):
                     break
                     
                 case .notAvailable:

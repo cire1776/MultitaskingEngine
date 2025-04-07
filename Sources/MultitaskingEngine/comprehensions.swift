@@ -9,6 +9,7 @@ import Foundation
 
 public enum EntityResult: Equatable {
     case proceed
+    case pump(SubscriptionMask)
     case notAvailable
     case eof
     case unusualExecutionEvent
@@ -107,6 +108,9 @@ public enum Comprehension {
     
     public protocol Subscription: Common {
         var subscriptions: Subscriptions { get set }
+
+        var pumper: Int?  { get set }
+        
         @inline(__always)
         func modifyTickLints(_ lints: inout LintArray)
         
@@ -180,6 +184,9 @@ public extension Comprehension.Subscription {
             subscriptions.publish(outputStreams)
         case .pump(_):
             subscriptions.publish(outputStreams)
+            guard let caller = caller else { return .running }
+            guard pumper == nil else { fatalError("Multiple pumpers not yet supported") }
+            pumper = caller
         case .unusualExecutionEvent:
             assert(executionContext.pendingEvent != nil)
             return .unusualExecutionEvent(executionContext.pendingEvent!)
@@ -198,6 +205,15 @@ public extension Comprehension.Subscription {
         }
         
         modifyTickLints(&lints)
+        
+        lints.append({ [self] in
+            if let pumper = self.pumper {
+                $0.lintCounter = pumper - 1
+                self.pumper = nil
+                return .running
+            }
+            return .completed
+        })
         
         return LintTable.Sequential(lints: lints, identifier: self.tickFlowID)
     }

@@ -99,7 +99,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                     return .localBreak  // short-circuit tick
                 case .eof:
                     return .nonLocalBreak(2)
-                case .proceed:
+                case .proceed, .pump(_):
                     break  // continue tick
                 case .unusualExecutionEvent:
                     assert(executionContext.pendingEvent != nil)
@@ -116,7 +116,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                 case .eof:
                     return .nonLocalBreak(2)
                     
-                case .proceed:
+                case .proceed, .pump(_):
                     break  // continue tick
                     
                 case .unusualExecutionEvent:
@@ -147,7 +147,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                 case .eof:
                     return .nonLocalBreak(2)
                     
-                case .proceed:
+                case .proceed, .pump(_):
                     break  // continue tick
                     
                 case .unusualExecutionEvent:
@@ -173,7 +173,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                 case .eof:
                     return .nonLocalBreak(2)
                     
-                case .proceed:
+                case .proceed, .pump(_):
                     break  // continue tick
                     
                 case .unusualExecutionEvent:
