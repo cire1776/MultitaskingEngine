@@ -12,7 +12,7 @@ public class AddLineToBuffer: Comprehension.Entity {
     
     public var subscriptions: SubscriptionMask = .max
     
-    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"

@@ -1,20 +1,20 @@
 //
-//  split_linw_into_words.swift
+//  split_line_into_words.swift
 //  MultitaskingEngine
 //
 //  Created by Eric Russell on 4/6/25.
 //
 
-final class SplitLinesIntoWords: Comprehension.Entity {
+final public class SplitLinesIntoWords: Comprehension.Entity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String
 
     private var wordBuffer: [String] = []
 
-    let subscriptions: SubscriptionMask = 0x1
+    public let subscriptions: SubscriptionMask = 0x1
 
-    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext

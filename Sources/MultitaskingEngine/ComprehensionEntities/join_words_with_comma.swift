@@ -5,16 +5,16 @@
 //  Created by Eric Russell on 4/6/25.
 //
 
-final class JoinWordsWithComma: Comprehension.Entity {
+final public class JoinWordsWithComma: Comprehension.Entity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String
 
-    var subscriptions: SubscriptionMask = 0
+    public var subscriptions: SubscriptionMask = 0
 
     private var buffer: [String] = []
 
-    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext

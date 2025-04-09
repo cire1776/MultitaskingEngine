@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Data Source: Read Line from File
-class ReadLineFromFile: Comprehension.Entity {
+final public class ReadLineFromFile: Comprehension.Entity {
     let inputStream: String
     let outputStream: String
     
@@ -22,7 +22,7 @@ class ReadLineFromFile: Comprehension.Entity {
 
     public var subscriptions: SubscriptionMask = .max
 
-    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         
@@ -37,8 +37,7 @@ class ReadLineFromFile: Comprehension.Entity {
             return
         }
         self.filename = filename
-   }
-    
+    }
     
     func next() -> EntityResult {
         // ✅ Lazy initialization of fileHandle (first call to `next()`)

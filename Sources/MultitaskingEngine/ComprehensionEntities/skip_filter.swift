@@ -12,7 +12,7 @@ public struct SkipFilter: Comprehension.Entity {
 
     public var subscriptions: SubscriptionMask = .max
     
-    init(valuesToSkip: [String], stream: String, executionContext: StreamExecutionContext) {
+    public init(valuesToSkip: [String], stream: String, executionContext: StreamExecutionContext) {
         self.valuesToSkip = Set(valuesToSkip)
         self.stream = stream
         self.executionContext = executionContext

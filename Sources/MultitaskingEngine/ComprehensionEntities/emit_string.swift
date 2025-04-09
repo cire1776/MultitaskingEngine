@@ -5,16 +5,16 @@
 //  Created by Eric Russell on 4/6/25.
 //
 
-final class EmitString: Comprehension.Entity {
+final public class EmitString: Comprehension.Entity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String
     private var lines: [String] = []
     private var currentIndex: Int
 
-    let subscriptions: SubscriptionMask = 0
+    public let subscriptions: SubscriptionMask = 0
 
-    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"

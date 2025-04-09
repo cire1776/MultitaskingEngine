@@ -16,7 +16,7 @@ final public class ReadFiles: Comprehension.Entity {
 
     public var subscriptions: SubscriptionMask = .max
     
-    init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext) {
         self.filenameStream = aliasMap["filename"] ?? "filename"
         self.pathnameStream = aliasMap["pathname"] ?? "pathname"
         self.executionContext = executionContext

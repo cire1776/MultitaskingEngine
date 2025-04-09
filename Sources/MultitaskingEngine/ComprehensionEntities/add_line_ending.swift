@@ -7,7 +7,7 @@
 
 public class AddLineEnding: Comprehension.Entity {
     let inputStream: String
-    var executionContext: StreamExecutionContext
+    public var executionContext: StreamExecutionContext
     
     public init(aliasMap: [String: String], executionContext: StreamExecutionContext) {
         self.executionContext = executionContext
@@ -16,9 +16,9 @@ public class AddLineEnding: Comprehension.Entity {
    
     public var subscriptions: SubscriptionMask = .max
 
-    public func initialize() {  }
+    func initialize() {  }
     
-    public func process() -> EntityResult {
+    func process() -> EntityResult {
         guard let line = try? executionContext[inputStream].get() as? String else {
             return .notAvailable
         }
