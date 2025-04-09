@@ -228,4 +228,8 @@ public extension Comprehension.Subscription {
             { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
         ], identifier: mainLoopID)
     }
+    
+    func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
+        return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
+    }
 }
