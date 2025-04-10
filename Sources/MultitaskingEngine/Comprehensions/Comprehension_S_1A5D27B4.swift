@@ -50,7 +50,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     
     public var pumper: Int?
     
-    init(executionContext: StreamExecutionContext?=nil) {
+    required public init(executionContext: StreamExecutionContext?=nil) {
         guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
             fatalError("Expected a SubscriptionStreamExecutionContext!")
         }

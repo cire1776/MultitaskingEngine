@@ -25,8 +25,8 @@ class DummySubscription: Comprehension.Subscription {
     var mainLoopID: Int = 9999 // not actually used
     var tickFlowID: Int = 9991 // not actually used
     
-    init(ctx: StreamExecutionContext) {
-        self.executionContext = ctx
+    required public init(executionContext ctx: StreamExecutionContext?) {
+        self.executionContext = ctx ?? StreamExecutionContext()
         // Create a simple sequential lint table with one no‑op lint that returns .running.
         self.table = LintTable.Sequential(lints: [
             { _ in return .running }
@@ -47,7 +47,7 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
             
             beforeEach {
                 ctx = StreamExecutionContext()
-                dummySub = DummySubscription(ctx: ctx)
+                dummySub = DummySubscription(executionContext: ctx)
             }
             
             context("Operation name") {
@@ -89,7 +89,7 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
                     }
                     
                     // Create a dummy subscription blueprint with a main lint table containing only the main lint.
-                    let dummySub = DummySubscription(ctx: ctx)
+                    let dummySub = DummySubscription(executionContext: ctx)
                     dummySub.table = LintTable.Sequential(lints: [mainLint], identifier: 1)
                     
                     // Instantiate the subscription instance with the preinitialization lint.

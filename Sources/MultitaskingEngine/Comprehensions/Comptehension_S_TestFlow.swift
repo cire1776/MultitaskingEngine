@@ -34,9 +34,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
     private let join: JoinWordsWithComma
     private let printer: Print
     
-    internal var subscriptionsMask: SubscriptionMask { return 0xF }
-    
-    public init(executionContext: StreamExecutionContext?=nil) {
+    required public init(executionContext: StreamExecutionContext?=nil) {
         guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
             fatalError("Expected a SubscriptionStreamExecutionContext!")
         }

@@ -45,7 +45,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
     public var mainLoopID: Int = 2
     public var tickFlowID: Int = 1
     
-    init(executionContext: StreamExecutionContext?=nil) {
+    required public init(executionContext: StreamExecutionContext?=nil) {
         self.executionContext = executionContext ?? StreamExecutionContext()
         self.operationID = Int("1A5D27B3", radix: 16)!
         readFiles = ReadFiles(
