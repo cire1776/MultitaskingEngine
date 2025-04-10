@@ -43,8 +43,6 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     
     public var subscriptions = Subscriptions(sources: 0x01)
     
-    private lazy var flowGraph = FlowEntity.graphFlow(self, for: flowEntities)
-
     public let mainLoopID: Int = 2
     public let tickFlowID: Int = 1
     
@@ -80,7 +78,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         
         self.table = LintTable.Sequential(lints:[
             { _ in self.initialize() ; return .running },
-            { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop()); return .skipYield },
+            { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop(tickFlowEntityBlocks: flowEntities)); return .skipYield },
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
             { _ in self.finalize() ; return .completed },
         ], identifier: 500)
@@ -102,7 +100,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         readFiles.finalize()
     }
     
-    public func readFilesBlock(nextEntity: LintTable.Steppable?) -> LintTable.Steppable {
+    public func readFilesBlock(runner: LintRunner? = nil) -> LintTable.Steppable {
         let outputStreams: SubscriptionMask = 0x3
         var result: EntityResult = .proceed
 
@@ -113,7 +111,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         ], identifier: 1776)
     }
 
-    public func skipOutputBlock (nextEntity: LintTable.Steppable?) -> LintTable.Steppable {
+    public func skipOutputBlock (runner: LintRunner? = nil) -> LintTable.Steppable {
         let inputSubscriptions: SubscriptionMask = 0x1
         let outputStreams: SubscriptionMask = 0x3
         var result: EntityResult = .proceed
@@ -125,7 +123,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         ], identifier: 1777)
     }
 
-    public func processFileBlock(nextEntity: LintTable.Steppable?) -> LintTable.Steppable {
+    public func processFileBlock(runner: LintRunner? = nil) -> LintTable.Steppable {
         let inputSubscriptions: SubscriptionMask = 0x2
         let outputStreams: SubscriptionMask = 0x4
         var result: EntityResult = .proceed
@@ -148,7 +146,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         ], identifier: 1778)
     }
 
-    public func synchronizeBlock(nextEntity: LintTable.Steppable?) -> LintTable.Steppable {
+    public func synchronizeBlock(runner: LintRunner? = nil) -> LintTable.Steppable {
         let inputSubscriptions: SubscriptionMask = 0x4
         let outputStreams: SubscriptionMask = 0x8
         var result: EntityResult = .proceed
@@ -173,33 +171,11 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         ], identifier: 1779)
     }
     
-    lazy var flowEntities = [
-        { [self] in readFilesBlock(nextEntity: $0) },
-        { [self] in skipOutputBlock(nextEntity: $0) },
-        { [self] in processFileBlock(nextEntity: $0) },
-        { [self] in synchronizeBlock(nextEntity: $0) },
+    lazy var flowEntities: [(LintRunner) -> LintTable.Steppable] = [
+        { [self] in readFilesBlock(runner: $0) },
+        { [self] in skipOutputBlock(runner: $0) },
+        { [self] in processFileBlock(runner: $0) },
+        { [self] in synchronizeBlock(runner: $0) },
     ]
-    
-    @inline(__always)
-    private func produceTickFlow() -> LintTable.Steppable {
-        let current = flowGraph
-        
-        return LintTable.Sequential(lints: flowEntities.map { block in
-            {
-                $0.pushSuboperation(table: block(current?.next?.table))
-                return MultitaskingEngine.OperationState.skipYield
-            }
-        }, identifier: tickFlowID)
-    }
-    
-    lazy var tickFlow: LintTable.Steppable = produceTickFlow()
-    
-    @inline(__always)
-    private func produceMainLoop() -> LintTable.Steppable {
-        return LintTable.Loop(lints: [
-            { [/*unowned*/ self] _ in self.subscriptions.reset(); return .running },
-            { [/*unowned*/ self] in $0.pushSuboperation(table: tickFlow); return .skipYield },
-            { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
-        ], identifier: mainLoopID)
-    }
 }
+
