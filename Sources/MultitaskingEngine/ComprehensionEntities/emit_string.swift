@@ -34,11 +34,13 @@ final public class EmitString: Comprehension.Entity {
     }
 
     func next() -> EntityResult {
+        print("---- emit_string.next ----")
         guard currentIndex < lines.count else {
             return .eof
         }
 
         executionContext[outputStream] = .success(lines[currentIndex])
+        print("emit line: \(lines[currentIndex])")
         currentIndex += 1
         return .proceed
     }
