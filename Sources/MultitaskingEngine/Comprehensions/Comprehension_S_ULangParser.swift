@@ -36,7 +36,6 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
     private let emitCharacter: EmitCharacter
     private let identifySymbol: IdentifySymbols
     private let collect: Collect
-//    private let convertGroupsIntoTokens: ConvertGroupsIntoTokens
     private let build: BuildAST
     private let debugStream: DebugStream
     

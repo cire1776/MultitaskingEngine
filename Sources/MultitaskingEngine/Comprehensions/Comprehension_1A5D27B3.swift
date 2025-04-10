@@ -135,9 +135,6 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                 let processFile = Comprehension_ProcessFile(executionContext: fileContext)
                 let result = processFile.execute()
                 
-//                print(fileContext.dumpStreams())
-//                print("result: ", result)
-                
                 switch result {
                 case .notAvailable:
                     return .localBreak  // short-circuit tick
