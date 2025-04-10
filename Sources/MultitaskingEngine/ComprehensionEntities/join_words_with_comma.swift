@@ -20,8 +20,6 @@ final public class JoinWordsWithComma: Comprehension.Entity {
         self.executionContext = executionContext
     }
 
-    func initialize() {}
-
     func process() -> EntityResult {
         guard case let .success(word as String) = executionContext[inputStream] else {
             return .notAvailable

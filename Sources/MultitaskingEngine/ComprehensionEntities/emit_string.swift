@@ -42,6 +42,4 @@ final public class EmitString: Comprehension.Entity {
         currentIndex += 1
         return .proceed
     }
-
-    func finalize() {}
 }

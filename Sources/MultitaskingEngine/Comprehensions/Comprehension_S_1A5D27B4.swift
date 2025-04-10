@@ -95,14 +95,12 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     private func initialize() {
         print("initialize")
         readFiles.initialize()
-        skipOutput.initialize()
     }
 
     @inline(__always)
     private func finalize() {
         print("finalize")
         readFiles.finalize()
-        skipOutput.finalize()
     }
     
     public func readFilesBlock(nextEntity: LintTable.Steppable?) -> LintTable.Steppable {

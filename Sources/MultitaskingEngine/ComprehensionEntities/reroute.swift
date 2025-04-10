@@ -37,9 +37,4 @@ final public class RerouteEntity: Comprehension.Entity {
         }
         return .notAvailable
     }
-    
-    public func finalize() {
-        
-    }
-
 }

@@ -39,7 +39,6 @@ final class Comprehension_ProcessFile {
 
     func execute() -> EntityResult {
         readLine.initialize()
-        addTerminator.initialize()
         storeLine.initialize()
         // Print requires no initialization
 
@@ -94,7 +93,6 @@ final class Comprehension_ProcessFile {
         }
         
         readLine.finalize()
-        storeLine.finalize()
         
         return .proceed
     }

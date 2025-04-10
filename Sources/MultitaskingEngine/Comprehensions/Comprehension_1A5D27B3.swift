@@ -77,14 +77,12 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
     private func initialize() {
         print("initialize")
         readFiles.initialize()
-        skipOutput.initialize()
     }
 
     @inline(__always)
     private func finalize() {
         print("finalize")
         readFiles.finalize()
-        skipOutput.finalize()
     }
     
     
@@ -203,8 +201,7 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
             
             { [self] in $0.pushSuboperation(table: produceMainLoop()); return .skipYield  },
             
-            { [self] _ in readFiles.finalize(); return .running },
-            { [self] _ in skipOutput.finalize(); return .completed },
+            { [self] _ in readFiles.finalize(); return .completed },
         ]
     }
 }

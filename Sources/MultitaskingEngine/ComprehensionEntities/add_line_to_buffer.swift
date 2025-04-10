@@ -42,6 +42,4 @@ public class AddLineToBuffer: Comprehension.Entity {
         
         return .proceed
     }
-    
-    func finalize() {}
 }

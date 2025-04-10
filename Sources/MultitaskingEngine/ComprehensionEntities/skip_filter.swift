@@ -18,8 +18,6 @@ public struct SkipFilter: Comprehension.Entity {
         self.executionContext = executionContext
     }
 
-    func initialize() {}
-
     func include() -> EntityResult {
         if !executionContext.containsKey(stream) { return .eof }
 
@@ -31,6 +29,4 @@ public struct SkipFilter: Comprehension.Entity {
 
         return .proceed
     }
-
-    func finalize() {}
 }

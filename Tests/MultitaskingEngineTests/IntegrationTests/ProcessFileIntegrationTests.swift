@@ -71,7 +71,6 @@ final class ProcessFileIntegrationTests: AsyncSpec {
                     executionContext: executionContext
                 )
 
-                addLineEnding.initialize()
                 expect(addLineEnding.process()).to(equal(.proceed))
                 expect(try? executionContext["line"].get() as? String).to(equal("hello\n"))
             }
@@ -132,7 +131,6 @@ final class ProcessFileIntegrationTests: AsyncSpec {
 
                 // ✅ Initialize all entities that need it
                 readLine.initialize()
-                addLineEnding.initialize()
                 addLineToBuffer.initialize()
 
                 var printedLines: [String] = []
@@ -204,7 +202,6 @@ final class ProcessFileIntegrationTests: AsyncSpec {
                 )
 
                 readLine.initialize()
-                addLineEnding.initialize()
                 addLineToBuffer.initialize()
 
                 while readLine.next() == .proceed {

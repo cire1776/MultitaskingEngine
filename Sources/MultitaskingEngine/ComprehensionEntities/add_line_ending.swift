@@ -16,8 +16,6 @@ public class AddLineEnding: Comprehension.Entity {
    
     public var subscriptions: SubscriptionMask = .max
 
-    func initialize() {  }
-    
     func process() -> EntityResult {
         guard let line = try? executionContext[inputStream].get() as? String else {
             return .notAvailable
