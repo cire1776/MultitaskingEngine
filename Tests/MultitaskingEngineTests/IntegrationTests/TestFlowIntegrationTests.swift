@@ -12,70 +12,53 @@ import Nimble
 
 final class TestFlowIntegrationTests: AsyncSpec {
     override class func spec() {
-
         describe("Comprehension_S_TestFlow") {
-            func createPreinitLint(value: Any?, executionContext: StreamExecutionContext) -> Lint {
-                return { [executionContext] _ in
-                    executionContext.ensure("input", defaultValue: value)
-                    executionContext.ensure("comma_delimited_line", defaultValue: "~nil~")
-                    return .running }
-                
-            }
-
-            func runComprehension(input: Any) async -> String? {
-                let context = SubscriptionStreamExecutionContext()
-                let preinit = createPreinitLint(value: input, executionContext: context)
-
-                let blueprint = Comprehension_S_TestFlow(executionContext: context)
-                let instance = blueprint.instantiate(preinitialization_lint: preinit, executionContext: context)
-
-                let runner = ManualLintRunner(provider: instance)
-                _ = await runner.executeAll()
-
-                return try? context["comma_delimited_line"].get() as? String
+            func runTestFlow(input: Any, expected: String) async {
+                let result = await runComprehension(
+                    input: input,
+                    blueprint: Comprehension_S_TestFlow.init
+                ) { context in
+                    return (
+                        preinit: preinits(["input": input, "comma_delimited_line": "~nil~"])(context),
+                        extract: { try? context["comma_delimited_line"].get() as? String }
+                    )
+                }
+                expect(result).to(equal(expected))
             }
 
             context("when input is a single string") {
                 it("emits and transforms multi-line input correctly") {
-                    let result = await runComprehension(input: "hello world\nthis is a test")
-                    expect(result).to(equal("hello,world,this,is,a,test"))
+                    await runTestFlow(input: "hello world\nthis is a test", expected: "hello,world,this,is,a,test")
                 }
 
                 it("handles single line input") {
-                    let result = await runComprehension(input: "quick brown fox")
-                    expect(result).to(equal("quick,brown,fox"))
+                    await runTestFlow(input: "quick brown fox", expected: "quick,brown,fox")
                 }
 
                 it("handles empty string") {
-                    let result = await runComprehension(input: "")
-                    expect(result).to(equal(""))
+                    await runTestFlow(input: "", expected: "")
                 }
 
                 it("handles only newline characters") {
-                    let result = await runComprehension(input: "\n\n\n")
-                    expect(result).to(equal(""))
+                    await runTestFlow(input: "\n\n\n", expected: "")
                 }
 
                 it("handles mixed whitespace and newlines") {
-                    let result = await runComprehension(input: "foo \n bar\nbaz")
-                    expect(result).to(equal("foo,bar,baz"))
+                    await runTestFlow(input: "foo \n bar\nbaz", expected: "foo,bar,baz")
                 }
             }
 
             context("when input is an array of strings") {
                 it("emits array correctly") {
-                    let result = await runComprehension(input: ["alpha", "beta gamma", "delta"])
-                    expect(result).to(equal("alpha,beta,gamma,delta"))
+                    await runTestFlow(input: ["alpha", "beta gamma", "delta"], expected: "alpha,beta,gamma,delta")
                 }
 
                 it("emits empty array as empty string") {
-                    let result = await runComprehension(input: [])
-                    expect(result).to(equal(""))
+                    await runTestFlow(input: [], expected: "")
                 }
 
                 it("emits array with empty strings properly") {
-                    let result = await runComprehension(input: ["", "a", "", "b"])
-                    expect(result).to(equal("a,b"))
+                    await runTestFlow(input: ["", "a", "", "b"], expected: "a,b")
                 }
             }
         }
