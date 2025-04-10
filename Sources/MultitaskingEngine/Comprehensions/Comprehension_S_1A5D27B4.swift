@@ -163,7 +163,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
                     destination: executionContext,
                 )
                 
-                result = sync.process()
+                result = sync.process(publishes: outputStreams)
                 return .running
             },
             { [self] _ in dispatch(on: result, emitting: outputStreams) },

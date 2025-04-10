@@ -92,7 +92,7 @@ final class OutputQueue {
 
     func initialize() {}
 
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         guard let message = queue.dequeue() else {
             return .notAvailable
         }

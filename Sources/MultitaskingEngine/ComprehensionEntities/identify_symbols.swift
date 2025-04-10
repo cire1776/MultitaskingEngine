@@ -20,7 +20,7 @@ final public class IdentifySymbols: Comprehension.Entity {
         self.executionContext = executionContext
     }
     
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         print("---- Identifying Symbols ----")
         guard case .success(let nextChar as Character) = executionContext[inputStream],
               Group.classify(nextChar) == Group.Kind.symbol else {

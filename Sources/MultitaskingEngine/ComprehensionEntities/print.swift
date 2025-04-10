@@ -16,7 +16,7 @@ public class Print: Comprehension.Entity {
         self.inputStream = aliasMap["input"] ?? "input"
     }
     
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         if case let .success(output) = executionContext[inputStream] {
             print(output ?? "~nil~")
             return .proceed

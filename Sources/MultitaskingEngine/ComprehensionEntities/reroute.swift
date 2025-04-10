@@ -29,7 +29,7 @@ final public class RerouteEntity: Comprehension.Entity {
         }
     }
     
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         if case let .success(value) = executionContext[inputStream] {
             executionContext[outputStream] = .success(value)
             executionContext.remove(inputStream)

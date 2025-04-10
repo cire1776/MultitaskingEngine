@@ -80,7 +80,7 @@ final public class Collect: Comprehension.Entity {
     
     func initialize() {}
     
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         print("----- collect -----\n")
         print("collect buffer:\n\(buffer)\n")
         print("collecting: \(String(describing: try? executionContext[inputStream].get()!))")
@@ -106,7 +106,7 @@ final public class Collect: Comprehension.Entity {
         return .notAvailable
     }
     
-    func drain() -> EntityResult {
+    func drain(publishes: SubscriptionMask=0) -> EntityResult {
         if buffer.isEmpty && bufferedGroup == nil { return .eof }
         _ = writeBuffer()
         return .proceed

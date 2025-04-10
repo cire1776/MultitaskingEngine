@@ -22,7 +22,7 @@ final public class BuildAST: Comprehension.Entity {
 
     func initialize() {}
 
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         guard case let .success(token as Group) = executionContext[inputStream] else {
             return .notAvailable
         }
@@ -31,8 +31,8 @@ final public class BuildAST: Comprehension.Entity {
         return .proceed
     }
 
-    func drain() -> EntityResult {
-        return process()
+    func drain(publishes: SubscriptionMask=0) -> EntityResult {
+        return process(publishes: publishes)
     }
     
     func finalize() {

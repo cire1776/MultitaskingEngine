@@ -83,7 +83,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- Split block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in dispatch(on: split.process(), emitting: outputStreams, at: runner.previousTableNode?.counter) }
+            { [self] _ in dispatch(on: split.process(publishes: outputStreams), emitting: outputStreams, at: runner.previousTableNode?.counter) }
         ])
     }
     
@@ -95,7 +95,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- join block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in dispatch(on: join.process(), emitting: outputStreams) }
+            { [self] _ in dispatch(on: join.process(publishes: outputStreams), emitting: outputStreams) }
         ])
     }
     

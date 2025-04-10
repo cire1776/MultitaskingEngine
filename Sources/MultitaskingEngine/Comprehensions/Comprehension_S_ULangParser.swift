@@ -94,7 +94,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = emitCharacter.process(); return .running },
+            { [self] _ in result = emitCharacter.process(publishes: outputStreams); return .running },
             { [self] _ in dispatch(on: result, emitting: outputStreams, at: runner.previousTableNode?.counter) }
         ])
     }
@@ -107,7 +107,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = identifySymbol.process(); return .running },
+            { [self] _ in result = identifySymbol.process(publishes: outputStreams); return .running },
             { [self] _ in dispatch(on: result, emitting: outputStreams) }
         ])
     }
@@ -120,7 +120,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? collect.drain() : collect.process(); return .running },
+            { [self] _ in result = executionContext.isDraining ? collect.drain(publishes: outputStreams) : collect.process(publishes: outputStreams); return .running },
             { [self] _ in dispatch(on: result, emitting: outputStreams, at: 1776) }
         ])
     }
@@ -134,7 +134,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? build.drain() : build.process(); return .running },
+            { [self] _ in result = executionContext.isDraining ? build.drain(publishes: outputStreams) : build.process(publishes: outputStreams); return .running },
             { [self] _ in dispatch(on: result, emitting: outputStreams) }
         ])
     }

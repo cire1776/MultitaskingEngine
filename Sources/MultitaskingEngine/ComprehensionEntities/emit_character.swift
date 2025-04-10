@@ -28,7 +28,7 @@ final public class EmitCharacter: Comprehension.Entity {
         index = buffer.startIndex
     }
 
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         print("----emit character----")
         // Only refill if we've exhausted the buffer
         if index >= buffer.endIndex {
@@ -51,7 +51,7 @@ final public class EmitCharacter: Comprehension.Entity {
 
         executionContext[outputStream] = .success(character)
         print("emitted: \(character)")
-        return index < buffer.endIndex ? .pump(0x1) : .proceed
+        return index < buffer.endIndex ? .pump(publishes) : .proceed
     }
 
     func finalize() {

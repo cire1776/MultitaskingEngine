@@ -26,7 +26,7 @@ public class Synchronize: Comprehension.Entity {
         self.destinationContext = destination
     }
     
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         guard let value = try? sourceContext[inputStream].get() as? [String] else {
             return .notAvailable
         }

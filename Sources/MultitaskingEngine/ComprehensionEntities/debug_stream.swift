@@ -16,7 +16,7 @@ final public class DebugStream: Comprehension.Entity {
         self.executionContext = executionContext
     }
     
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         print(executionContext.dumpStreams())
         return .proceed
     }

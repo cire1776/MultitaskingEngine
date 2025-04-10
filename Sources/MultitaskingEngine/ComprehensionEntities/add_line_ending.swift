@@ -16,11 +16,11 @@ public class AddLineEnding: Comprehension.Entity {
    
     public var subscriptions: SubscriptionMask = .max
 
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         guard let line = try? executionContext[inputStream].get() as? String else {
             return .notAvailable
         }
-        
+
         if !line.hasSuffix("\n") {
              executionContext[inputStream] = .success(line + "\n")
         }

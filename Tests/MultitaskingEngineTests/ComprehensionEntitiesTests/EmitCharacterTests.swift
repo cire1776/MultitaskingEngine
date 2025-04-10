@@ -89,8 +89,8 @@ final class EmitCharacterSpec: AsyncSpec {
 
             it("returns .pump when characters remain") {
                 let (_, emitter) = createEmitter(with: "xy")
-                let result = emitter.process()
-                expect(result).to(equal(.pump(0x1)))
+                let result = emitter.process(publishes: 0x1776)
+                expect(result).to(equal(.pump(0x1776)))
             }
 
             it("returns .proceed on final character") {

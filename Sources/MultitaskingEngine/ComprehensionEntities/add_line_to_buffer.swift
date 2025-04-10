@@ -22,7 +22,7 @@ public class AddLineToBuffer: Comprehension.Entity {
         executionContext.ensure(outputStream,defaultValue: [])
     }
 
-    func process() -> EntityResult {
+    func process(publishes: SubscriptionMask=0) -> EntityResult {
         guard let line = try? executionContext[inputStream].get() as? String else {
             executionContext.triggerUnusualEvent(.warning("Nil input received."))
             return .notAvailable
