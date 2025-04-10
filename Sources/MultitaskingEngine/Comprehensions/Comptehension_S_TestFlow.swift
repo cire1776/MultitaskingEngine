@@ -27,7 +27,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
     
     internal var subscriptions = Subscriptions(sources: 0x1)
     
-    public var pumper: Int? = nil
+    public var pumpers: [Int] = []
     
     private let emitString: EmitString!
     private let split: SplitLinesIntoWords
@@ -69,7 +69,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         let outputStreams: SubscriptionMask = 0x1
         
         return LintTable.Sequential(lints: [
-            { _ in print("----- Emitting block\(self.pumper != nil ? "+" : "") -----"); return .running },
+            { [self] _ in print("----- Emitting block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in result = emitString.next(); return .running },
             { [self] _ in dispatch(on: result, emitting: outputStreams) }
         ])
@@ -81,7 +81,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         let outputStreams: SubscriptionMask = 0x2
         
         return LintTable.Sequential(lints: [
-            { _ in print("----- Split block\(self.pumper != nil ? "+" : "") -----"); return .running },
+            { [self] _ in print("----- Split block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in dispatch(on: split.process(), emitting: outputStreams, at: runner.previousTableNode?.counter) }
         ])
@@ -93,7 +93,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         let outputStreams: SubscriptionMask = 0x4
         
         return LintTable.Sequential(lints: [
-            { _ in print("----- join block\(self.pumper != nil ? "+" : "") -----"); return .running },
+            { [self] _ in print("----- join block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in dispatch(on: join.process(), emitting: outputStreams) }
         ])
@@ -104,7 +104,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         let inputStreams: SubscriptionMask = 0x4
         
         return LintTable.Sequential(lints: [
-            { _ in print("----- print block\(self.pumper != nil ? "+" : "") -----"); return .running },
+            { [self] _ in print("----- print block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: 0) },
             { [self] _ in _ = printer.process(); return .running }
         ])

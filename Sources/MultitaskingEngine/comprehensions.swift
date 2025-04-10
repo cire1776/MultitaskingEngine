@@ -111,7 +111,7 @@ public enum Comprehension {
     public protocol Subscription: Common {
         var subscriptions: Subscriptions { get set }
 
-        var pumper: Int?  { get set }
+        var pumpers: [Int]  { get set }
         
         @inline(__always)
         func modifyTickLints(_ lints: inout LintArray)
@@ -207,8 +207,7 @@ public extension Comprehension.Subscription {
         case .pump(_):
             subscriptions.publish(outputStreams)
             guard let caller = caller else { return .running }
-            guard pumper == nil else { fatalError("Multiple pumpers not yet supported") }
-            pumper = caller
+            pumpers.append(caller)
         case .unusualExecutionEvent:
             assert(executionContext.pendingEvent != nil)
             return .unusualExecutionEvent(executionContext.pendingEvent!)
@@ -229,9 +228,8 @@ public extension Comprehension.Subscription {
         modifyTickLints(&lints)
         
         lints.append({ [self] in
-            if let pumper = self.pumper {
+            if let pumper = self.pumpers.popLast() {
                 $0.lintCounter = pumper - 1
-                self.pumper = nil
                 self.executionContext.executionMode = .standard
                 return .running
             }

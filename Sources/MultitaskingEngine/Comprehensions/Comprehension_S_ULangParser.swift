@@ -30,7 +30,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
     var mainLoopID: Int = 2
     var tickFlowID: Int = 1
     
-    public var pumper: Int? = nil
+    public var pumpers: [Int] = []
     
     private let emitLine: EmitStringWithReturns
     private let emitCharacter: EmitCharacter

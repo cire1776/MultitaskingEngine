@@ -12,7 +12,7 @@ import Nimble
 
 // Dummy implementation of Comprehension.Subscription for testing.
 class DummySubscription: Comprehension.Subscription {
-    var pumper: Int?
+    var pumpers: [Int] = []
     
     var executionContext: StreamExecutionContext
     var table: LintTable.Steppable
