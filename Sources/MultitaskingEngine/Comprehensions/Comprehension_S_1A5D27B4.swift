@@ -67,7 +67,6 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         operationID = Int("1A5D27B4", radix: 16)!
         
         readFiles = ReadFiles(
-            aliasMap: ["output": "filename"],
             executionContext: self.executionContext
         )
         
