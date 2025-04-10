@@ -110,6 +110,13 @@ public class ExecutionContext: HeapExecutionContext, EC.Writable {
     }
 }
 
+public enum ExecutionMode: String {
+    case standard = ""
+    case pumping = "⛽️"
+    case draining = "🚰"
+    case drainPump = "🔂"
+}
+
 public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchecked Sendable {
     public var operation: Operation? = nil
     
@@ -117,9 +124,12 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
     public var shouldYield: Bool = false
     
     public private(set) var tick: Int = 1
+    public var executionMode: ExecutionMode = .standard
     
     private var dynamicVariables: [String: VariableStorage] = [:]
     private let dynamicLock = NSLock()
+   
+    public var isDraining: Bool { executionMode == .draining }
     
     subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {

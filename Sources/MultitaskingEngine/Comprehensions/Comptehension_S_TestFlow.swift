@@ -82,7 +82,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         
         return LintTable.Sequential(lints: [
             { _ in print("----- Split block\(self.pumper != nil ? "+" : "") -----"); return .running },
-            { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
+            { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in dispatch(on: split.process(), emitting: outputStreams, at: runner.previousTableNode?.counter) }
         ])
     }

@@ -165,7 +165,10 @@ public extension Comprehension.Subscription {
     func subscriptionGuard(
         using inputSubscriptions: SubscriptionMask,
         emitting outputStreams: SubscriptionMask) -> OperationState {
-        guard !subscriptions.areAllExhausted() else { return .nonLocalBreak(mainLoopID) }
+        guard !subscriptions.areAllExhausted() else {
+            executionContext.executionMode = .draining
+            return .localBreak
+        }
         
         guard subscriptions.areAllAvailable(inputSubscriptions) else {
             subscriptions.unpublish(outputStreams)
@@ -175,6 +178,23 @@ public extension Comprehension.Subscription {
         return .running
     }
     
+    @inline(__always)
+    func drainableSubscriptionGuard(
+        using inputSubscriptions: SubscriptionMask,
+        emitting outputStreams: SubscriptionMask) -> OperationState {
+        guard !subscriptions.areAllExhausted() else {
+            executionContext.executionMode = .draining
+            return .running
+        }
+        
+        guard subscriptions.areAllAvailable(inputSubscriptions) else {
+            subscriptions.unpublish(outputStreams)
+            return .localBreak
+        }
+        
+        return .running
+    }
+
     @inline(__always)
     func dispatch(on result: EntityResult, emitting outputStreams: SubscriptionMask,at caller: Int?=nil) -> OperationState {
         switch result {
@@ -212,9 +232,10 @@ public extension Comprehension.Subscription {
             if let pumper = self.pumper {
                 $0.lintCounter = pumper - 1
                 self.pumper = nil
+                self.executionContext.executionMode = .standard
                 return .running
             }
-            return .completed
+            return executionContext.isDraining ? .nonLocalBreak(mainLoopID) : .completed
         })
         
         return LintTable.Sequential(lints: lints, identifier: self.tickFlowID)
