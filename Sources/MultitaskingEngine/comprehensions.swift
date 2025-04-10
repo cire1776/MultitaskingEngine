@@ -109,8 +109,6 @@ public enum Comprehension {
     public protocol Standard: Common {  }
     
     public protocol Subscription: Common {
-        var subscriptions: Subscriptions { get set }
-
         var context: SubscriptionStreamExecutionContext { get }
         
         var pumpers: [Int]  { get set }
@@ -167,13 +165,13 @@ public extension Comprehension.Subscription {
     func subscriptionGuard(
         using inputSubscriptions: SubscriptionMask,
         emitting outputStreams: SubscriptionMask) -> OperationState {
-        guard !subscriptions.areAllExhausted() else {
+            guard !context.subscriptions.areAllExhausted() else {
             executionContext.executionMode = .draining
             return .localBreak
         }
         
-        guard subscriptions.areAllAvailable(inputSubscriptions) else {
-            subscriptions.unpublish(outputStreams)
+            guard context.subscriptions.areAllAvailable(inputSubscriptions) else {
+                context.subscriptions.unpublish(outputStreams)
             return .localBreak
         }
         
@@ -184,13 +182,13 @@ public extension Comprehension.Subscription {
     func drainableSubscriptionGuard(
         using inputSubscriptions: SubscriptionMask,
         emitting outputStreams: SubscriptionMask) -> OperationState {
-        guard !subscriptions.areAllExhausted() else {
+        guard !context.subscriptions.areAllExhausted() else {
             executionContext.executionMode = .draining
             return .running
         }
         
-        guard subscriptions.areAllAvailable(inputSubscriptions) else {
-            subscriptions.unpublish(outputStreams)
+        guard context.subscriptions.areAllAvailable(inputSubscriptions) else {
+            context.subscriptions.unpublish(outputStreams)
             return .localBreak
         }
         
@@ -201,13 +199,13 @@ public extension Comprehension.Subscription {
     func dispatch(on result: EntityResult, emitting outputStreams: SubscriptionMask,at caller: Int?=nil) -> OperationState {
         switch result {
         case .notAvailable:
-            subscriptions.unpublish(outputStreams)
+            context.subscriptions.unpublish(outputStreams)
          case .eof:
-            subscriptions.exhaust(outputStreams)
+            context.subscriptions.exhaust(outputStreams)
         case .proceed:
-            subscriptions.publish(outputStreams)
+            context.subscriptions.publish(outputStreams)
         case .pump(_):
-            subscriptions.publish(outputStreams)
+            context.subscriptions.publish(outputStreams)
             guard let caller = caller else { return .running }
             pumpers.append(caller)
         case .unusualExecutionEvent:
@@ -244,7 +242,7 @@ public extension Comprehension.Subscription {
     @inline(__always)
     func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
         return LintTable.Loop(lints: [
-            { [/*unowned*/ self] _ in self.subscriptions.reset(); return .running },
+            { [/*unowned*/ self] _ in context.subscriptions.reset(); return .running },
             { [/*unowned*/ self] in
                 $0.pushSuboperation(table: produceTickFlow(flows: tickFlowEntityBlocks)); return .skipYield
             },

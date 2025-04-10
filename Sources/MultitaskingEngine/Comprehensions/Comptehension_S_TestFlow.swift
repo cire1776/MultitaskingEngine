@@ -27,8 +27,6 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
     var mainLoopID: Int = 2
     var tickFlowID: Int = 1
     
-    internal var subscriptions = Subscriptions(sources: 0x1)
-    
     public var pumpers: [Int] = []
     
     private let emitString: EmitString!
@@ -45,6 +43,8 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
 
         self.executionContext = executionContext
         self.context = self.executionContext as! SubscriptionStreamExecutionContext
+        self.executionContext.subscriptions = Subscriptions(sources: 0x01)
+        
         self.emitString = EmitString(
             executionContext: executionContext
         )
@@ -62,6 +62,8 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
             { [self] _ in join.finalize() ; return .completed },
             
         ], identifier: 500)
+
+        self.executionContext.subscriptions = Subscriptions(sources: 0x1)
     }
     
     func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {

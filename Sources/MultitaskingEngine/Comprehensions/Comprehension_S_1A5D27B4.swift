@@ -43,8 +43,6 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
     
     public let fileContext = StreamExecutionContext()
     
-    public var subscriptions = Subscriptions(sources: 0x01)
-    
     public let mainLoopID: Int = 2
     public let tickFlowID: Int = 1
     
@@ -59,6 +57,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
 
         self.executionContext = executionContext
         self.context = self.executionContext as! SubscriptionStreamExecutionContext
+        self.executionContext.subscriptions = Subscriptions(sources: 0x01)
         
         operationID = Int("1A5D27B4", radix: 16)!
         
@@ -80,6 +79,8 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
             { _ in self.finalize() ; return .completed },
         ], identifier: 500)
+        
+        self.context.subscriptions = Subscriptions(sources: 0x1)
     }
     
     public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {

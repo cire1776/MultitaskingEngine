@@ -38,6 +38,8 @@ class DummySubscription: Comprehension.Subscription {
         self.executionContext = executionContext
         self.context = self.executionContext as! SubscriptionStreamExecutionContext
 
+        self.executionContext.subscriptions = Subscriptions(sources: 0x01)
+
         // Create a simple sequential lint table with one no‑op lint that returns .running.
         self.table = LintTable.Sequential(lints: [
             { _ in return .running }

@@ -26,8 +26,6 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
     var table: any LintTable.Steppable
     
     var operationID: Int = UUID().hashValue
-
-    var subscriptions = Subscriptions(sources: 0x1)
     
     var mainLoopID: Int = 2
     var tickFlowID: Int = 1
@@ -75,6 +73,8 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
                 build.finalize()
                 return .completed }
         ], identifier: 500)
+        
+        self.context.subscriptions = Subscriptions(sources: 0x1)
     }
     
     @inline(__always)

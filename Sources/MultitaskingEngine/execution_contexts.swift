@@ -128,7 +128,9 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
     
     private var dynamicVariables: [String: VariableStorage] = [:]
     private let dynamicLock = NSLock()
-   
+  
+    public var subscriptions: Subscriptions!
+    
     public var isDraining: Bool { executionMode == .draining }
     
     subscript(name: String) -> Result<Any?, ExecutionContextError> {
