@@ -222,7 +222,7 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
 extension StreamExecutionContext {
     /// Returns a formatted string that lists all stored streams.
     public func dumpStreams() -> String {
-        var output = "---- Execution Context Dump ----\n"
+        var output = "---- Execution Context Dump \(executionMode.rawValue) ----\n"
         dynamicLock.lock()
         let sortedKeys = dynamicVariables.keys.sorted()
         for key in sortedKeys {
