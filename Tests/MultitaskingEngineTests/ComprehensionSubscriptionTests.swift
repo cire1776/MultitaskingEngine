@@ -12,11 +12,14 @@ import Nimble
 
 // Dummy implementation of Comprehension.Subscription for testing.
 class DummySubscription: Comprehension.Subscription {
+    var executionContext: StreamExecutionContext
+    var context: MultitaskingEngine.SubscriptionStreamExecutionContext
+    
     var pumpers: [Int] = []
     
-    var executionContext: StreamExecutionContext
     var table: LintTable.Steppable
     var operationID: Int = 0
+    
     // For a Subscription, the extension should prefix the operation name with "Comprehension_S_"
     var operationName: String = "Comprehension_S_0"
     
@@ -26,7 +29,15 @@ class DummySubscription: Comprehension.Subscription {
     var tickFlowID: Int = 9991 // not actually used
     
     required public init(executionContext ctx: StreamExecutionContext?) {
-        self.executionContext = ctx ?? StreamExecutionContext()
+        guard ctx == nil || ctx is SubscriptionStreamExecutionContext else {
+            fatalError("Expected a SubscriptionStreamExecutionContext!")
+        }
+        
+        let executionContext = ctx ?? SubscriptionStreamExecutionContext()
+
+        self.executionContext = executionContext
+        self.context = self.executionContext as! SubscriptionStreamExecutionContext
+
         // Create a simple sequential lint table with one no‑op lint that returns .running.
         self.table = LintTable.Sequential(lints: [
             { _ in return .running }
@@ -46,7 +57,7 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
             var dummySub: DummySubscription!
             
             beforeEach {
-                ctx = StreamExecutionContext()
+                ctx = SubscriptionStreamExecutionContext()
                 dummySub = DummySubscription(executionContext: ctx)
             }
             

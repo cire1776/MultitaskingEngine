@@ -111,6 +111,8 @@ public enum Comprehension {
     public protocol Subscription: Common {
         var subscriptions: Subscriptions { get set }
 
+        var context: SubscriptionStreamExecutionContext { get }
+        
         var pumpers: [Int]  { get set }
         
         @inline(__always)

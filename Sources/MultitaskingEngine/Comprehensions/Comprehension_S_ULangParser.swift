@@ -20,7 +20,9 @@
 import Foundation
 
 final class Comprehension_S_ULangParser: Comprehension.Subscription {
+    var context: SubscriptionStreamExecutionContext
     var executionContext: StreamExecutionContext
+    
     var table: any LintTable.Steppable
     
     var operationID: Int = UUID().hashValue
@@ -54,6 +56,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         }
         
         self.executionContext = executionContext!
+        self.context = executionContext as! SubscriptionStreamExecutionContext
         
         self.emitLine = EmitStringWithReturns(executionContext: executionContext!)
         self.emitCharacter = EmitCharacter(aliasMap: ["input": "output"], executionContext: executionContext!)

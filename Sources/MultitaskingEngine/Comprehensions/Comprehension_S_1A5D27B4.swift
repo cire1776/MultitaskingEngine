@@ -31,7 +31,9 @@ import Foundation
 
 
 final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sendable {
-    public let executionContext: StreamExecutionContext
+    public var context: SubscriptionStreamExecutionContext
+    public var executionContext: StreamExecutionContext
+    
     public var table: LintTable.Steppable
     
     public var operationID: Int
@@ -53,14 +55,10 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
             fatalError("Expected a SubscriptionStreamExecutionContext!")
         }
         
-        self.executionContext = executionContext ?? SubscriptionStreamExecutionContext(
-            streamFlags: [
-                "filename": 0x1,
-                "pathname": 0x2,
-                "output":   0x4,
-                "contents": 0x8,
-            ]
-        )
+        let executionContext = executionContext ?? SubscriptionStreamExecutionContext()
+
+        self.executionContext = executionContext
+        self.context = self.executionContext as! SubscriptionStreamExecutionContext
         
         operationID = Int("1A5D27B4", radix: 16)!
         

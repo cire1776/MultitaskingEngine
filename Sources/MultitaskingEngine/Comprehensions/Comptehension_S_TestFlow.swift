@@ -17,7 +17,9 @@
 import Foundation
 
 internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
+    var context: SubscriptionStreamExecutionContext
     var executionContext: StreamExecutionContext
+    
     var table: any LintTable.Steppable
     
     var operationID: Int = UUID().hashValue
@@ -39,14 +41,17 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
             fatalError("Expected a SubscriptionStreamExecutionContext!")
         }
         
-        self.executionContext = executionContext!
+        let executionContext = executionContext ?? SubscriptionStreamExecutionContext()
+
+        self.executionContext = executionContext
+        self.context = self.executionContext as! SubscriptionStreamExecutionContext
         self.emitString = EmitString(
-            executionContext: executionContext!
+            executionContext: executionContext
         )
         
-        self.split = SplitLinesIntoWords(aliasMap: ["input": "output", "output": "words"],executionContext: executionContext!)
-        self.join = JoinWordsWithComma(aliasMap: ["input": "words", "output": "comma_delimited_line"], executionContext: executionContext!)
-        self.printer = Print(aliasMap: ["input": "comma_delimited_line"], executionContext: executionContext!)
+        self.split = SplitLinesIntoWords(aliasMap: ["input": "output", "output": "words"],executionContext: executionContext)
+        self.join = JoinWordsWithComma(aliasMap: ["input": "words", "output": "comma_delimited_line"], executionContext: executionContext)
+        self.printer = Print(aliasMap: ["input": "comma_delimited_line"], executionContext: executionContext)
         
         self.table = LintTable.Sequential(lints:[])
         
