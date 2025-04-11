@@ -92,7 +92,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
             { [self] _ in print("----- Split block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in result = split.process(publishes: outputStreams); return .running },
-            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, at: runner.previousTableNode?.counter) }
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) }
         ])
     }
     

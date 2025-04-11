@@ -199,7 +199,7 @@ public extension Comprehension.Subscription {
     func dispatch(on result: EntityResult,
                   using inputStreams: SubscriptionMask=0,
                   emitting outputStreams: SubscriptionMask=0,
-                  at caller: Int?=nil) -> OperationState {
+                  on runner: LintRunner?=nil) -> OperationState {
         switch result {
         case .notAvailable where (context.subscriptions.exhausted & inputStreams) != 0:
             fallthrough
@@ -210,10 +210,12 @@ public extension Comprehension.Subscription {
         case .proceed:
             context.subscriptions.publish(outputStreams)
         case .pump(_):
-            assert(caller != nil, "Pumpers must provide a at caller:")
             context.subscriptions.publish(outputStreams)
-            guard let caller = caller else { return .running }
-            pumpers.append(caller)
+            guard let runner = runner else {
+                fatalError("runner must be provided for pumper.")
+            }
+            assert(runner.previousTableNode?.counter != nil, "runner must be at pumpable level.")
+            pumpers.append(runner.previousTableNode!.counter)
         case .unusualExecutionEvent:
             assert(executionContext.pendingEvent != nil)
             return .unusualExecutionEvent(executionContext.pendingEvent!)
