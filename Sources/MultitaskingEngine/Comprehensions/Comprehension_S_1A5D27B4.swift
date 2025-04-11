@@ -79,8 +79,6 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
             { _ in self.finalize() ; return .completed },
         ], identifier: 500)
-        
-        self.context.subscriptions = Subscriptions(sources: 0x1)
     }
     
     public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {
