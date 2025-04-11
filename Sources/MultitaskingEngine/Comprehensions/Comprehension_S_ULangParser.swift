@@ -97,7 +97,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in result = emitCharacter.process(publishes: outputStreams); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams, at: runner.previousTableNode?.counter) }
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, at: runner.previousTableNode?.counter) }
         ])
     }
 
@@ -110,7 +110,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in result = identifySymbol.process(publishes: outputStreams); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) }
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
         ])
     }
 
@@ -123,7 +123,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in result = executionContext.isDraining ? collect.drain(publishes: outputStreams) : collect.process(publishes: outputStreams); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams, at: 1776) }
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, at: 1776) }
         ])
     }
 
@@ -137,14 +137,14 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
             { [self] _ in result = executionContext.isDraining ? build.drain(publishes: outputStreams) : build.process(publishes: outputStreams); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) }
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
         ])
     }
     
     @inline(__always)
     private func debugBlock(runner: LintRunner) -> LintTable.Steppable {
         return LintTable.Sequential(lints: [
-            { [self] _ in dispatch(on: debugStream.process(), emitting: 0x0) }
+            { [self] _ in dispatch(on: debugStream.process()) }
         ])
     }
 }

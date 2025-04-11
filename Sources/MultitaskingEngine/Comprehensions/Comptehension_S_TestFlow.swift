@@ -43,7 +43,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
 
         self.executionContext = executionContext
         self.context = self.executionContext as! SubscriptionStreamExecutionContext
-        self.executionContext.subscriptions = Subscriptions(sources: 0x01)
+        self.executionContext.subscriptions = Subscriptions(sources: 0x07)
         
         self.emitString = EmitString(
             executionContext: executionContext
@@ -72,9 +72,9 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
     
     @inline(__always)
     private func emitBlock(runner: LintRunner?=nil) -> LintTable.Steppable {
-        var result: EntityResult = .proceed
         let outputStreams: SubscriptionMask = 0x1
-        
+        var result: EntityResult = .proceed
+
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- Emitting block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in result = emitString.next(); return .running },
@@ -86,11 +86,13 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
     private func splitBlock(runner: LintRunner) -> LintTable.Steppable {
         let inputStreams: SubscriptionMask = 0x1
         let outputStreams: SubscriptionMask = 0x2
+        var result: EntityResult = .proceed
         
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- Split block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in dispatch(on: split.process(publishes: outputStreams), emitting: outputStreams, at: runner.previousTableNode?.counter) }
+            { [self] _ in result = split.process(publishes: outputStreams); return .running },
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, at: runner.previousTableNode?.counter) }
         ])
     }
     
@@ -98,11 +100,13 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
     private func joinBlock(runner: LintRunner?=nil) -> LintTable.Steppable {
         let inputStreams: SubscriptionMask = 0x2
         let outputStreams: SubscriptionMask = 0x4
+        var result: EntityResult = .proceed
         
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- join block\(executionContext.executionMode.rawValue) -----"); return .running },
-            { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in dispatch(on: join.process(publishes: outputStreams), emitting: outputStreams) }
+            { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
+            { [self] _ in result = executionContext.isDraining ? join.process(publishes: outputStreams) : join.process(publishes: outputStreams); return .running },
+            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
         ])
     }
     

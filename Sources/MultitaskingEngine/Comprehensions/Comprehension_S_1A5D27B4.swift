@@ -116,7 +116,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputSubscriptions, emitting: outputStreams) },
             { [self] _ in result = skipOutput.include(); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) },
+            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) },
         ], identifier: 1777)
     }
 
@@ -139,7 +139,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
                 print("----------- output: \(try! fileContext["output"].get()!) -----------")
                 return .running
             },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) }
+            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) }
         ], identifier: 1778)
     }
 
@@ -163,7 +163,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
                 result = sync.process(publishes: outputStreams)
                 return .running
             },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) },
+            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) },
 
         ], identifier: 1779)
     }

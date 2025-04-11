@@ -196,15 +196,21 @@ public extension Comprehension.Subscription {
     }
 
     @inline(__always)
-    func dispatch(on result: EntityResult, emitting outputStreams: SubscriptionMask,at caller: Int?=nil) -> OperationState {
+    func dispatch(on result: EntityResult,
+                  using inputStreams: SubscriptionMask=0,
+                  emitting outputStreams: SubscriptionMask=0,
+                  at caller: Int?=nil) -> OperationState {
         switch result {
+        case .notAvailable where (context.subscriptions.exhausted & inputStreams) != 0:
+            fallthrough
+        case .eof:
+            context.subscriptions.exhaust(outputStreams)
         case .notAvailable:
             context.subscriptions.unpublish(outputStreams)
-         case .eof:
-            context.subscriptions.exhaust(outputStreams)
         case .proceed:
             context.subscriptions.publish(outputStreams)
         case .pump(_):
+            assert(caller != nil, "Pumpers must provide a at caller:")
             context.subscriptions.publish(outputStreams)
             guard let caller = caller else { return .running }
             pumpers.append(caller)
