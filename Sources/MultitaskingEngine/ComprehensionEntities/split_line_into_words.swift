@@ -25,7 +25,10 @@ final public class SplitLinesIntoWords: Comprehension.Entity {
     }
 
     func process(publishes: SubscriptionMask=0) -> EntityResult {
+        print("======= SplitLinesIntoWords =======")
+
         if wordBuffer.isEmpty {
+            print("----- Reading line -----")
             guard case let .success(line as String) = executionContext[inputStream] else {
                 return .notAvailable
             }
@@ -37,6 +40,7 @@ final public class SplitLinesIntoWords: Comprehension.Entity {
         }
 
         let word = wordBuffer.removeFirst()
+        print("emit: \(word): \(wordBuffer.isEmpty ? "proceed" : "pump")")
         executionContext[outputStream] = .success(word)
         return wordBuffer.isEmpty ? .proceed : .pump(publishes)
     }

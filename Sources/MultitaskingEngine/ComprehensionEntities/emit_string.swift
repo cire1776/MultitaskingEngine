@@ -34,8 +34,9 @@ final public class EmitString: Comprehension.Entity {
     }
 
     func next() -> EntityResult {
-        print("---- emit_string.next ----")
+        print("====== emit string =======")
         guard currentIndex < lines.count else {
+            print("---- eof ----")
             return .eof
         }
 
