@@ -1,0 +1,14 @@
+# Test-specific SwiftLint configuration
+
+force_cast:
+  severity: none   # Allow force casts in tests
+
+# Allow underscores just like in main
+type_name:
+  allowed_symbols: "_"
+
+# Still opt-in to good rules in tests too
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - fatal_error_message
