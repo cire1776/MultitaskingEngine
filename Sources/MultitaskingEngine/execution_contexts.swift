@@ -19,10 +19,10 @@ enum VariableStorage {
 
 public protocol HeapExecutionContext: AnyObject {
     var operation: Operation? { get }
-    
+
     var pendingEvent: UnusualExecutionEvent? { get set }
     var shouldYield: Bool { get set }
-    
+
     func triggerUnusualEvent(_ event: UnusualExecutionEvent)
 }
 
@@ -37,13 +37,13 @@ extension HeapExecutionContext {
 enum EC {
     protocol Readable where Self: HeapExecutionContext {
         subscript(_ name: String) -> Result<Any?, ExecutionContextError> { get }
-        
+
         func containsKey(_ name: String) -> Bool
     }
-    
+
     protocol Writable: EC.Readable {
         subscript(_ name: String) -> Result<Any?, ExecutionContextError> { get set }
-        
+
         func remove(_ name: String)
     }
 
@@ -51,17 +51,17 @@ enum EC {
        var tick: Int { get }
 
        func ensure(_ name: String, defaultValue: Any?)
-        
+
        func endTick()
     }
 }
 
 public class ExecutionContext: HeapExecutionContext, EC.Writable {
-    public var operation: Operation? = nil
-    
-    public var pendingEvent: UnusualExecutionEvent? = nil
+    public var operation: Operation?
+
+    public var pendingEvent: UnusualExecutionEvent?
     public var shouldYield: Bool = false
-    
+
     private var dynamicVariables: [String: VariableStorage] = [:]
     private let dynamicLock = NSLock()
 
@@ -77,7 +77,7 @@ public class ExecutionContext: HeapExecutionContext, EC.Writable {
             switch storage {
             case let .value(value):
                 return .success(value)
-            case .index, .ephemeral(_,_):
+            case .index, .ephemeral:
                 return .failure(.invalidVariableType)
             }
         }
@@ -96,13 +96,13 @@ public class ExecutionContext: HeapExecutionContext, EC.Writable {
             }
         }
     }
-    
+
     func containsKey(_ name: String) -> Bool {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
         return dynamicVariables[name] != nil
     }
-    
+
     func remove(_ name: String) {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
@@ -118,34 +118,34 @@ public enum ExecutionMode: String {
 }
 
 public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchecked Sendable {
-    public var operation: Operation? = nil
-    
+    public var operation: Operation?
+
     public var pendingEvent: UnusualExecutionEvent?
     public var shouldYield: Bool = false
-    
+
     public private(set) var tick: Int = 1
     public var executionMode: ExecutionMode = .standard
-    
+
     private var dynamicVariables: [String: VariableStorage] = [:]
     private let dynamicLock = NSLock()
-  
+
     public var subscriptions: Subscriptions!
-    
+
     public var isDraining: Bool { executionMode == .draining }
-    
+
     subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {
             dynamicLock.lock()
             defer { dynamicLock.unlock() }
-            
+
             guard let storage = dynamicVariables[name] else {
                 return .success(nil) // ✅ Variable not set yet
             }
-            
+
             switch storage {
             case let .ephemeral(value, storedTick) where storedTick == self.tick:
                 return .success(value)
-            case .ephemeral(_, _):
+            case .ephemeral:
                 return .failure(.staleEphemeralVariable)
             case let .value(value):
                 return .success(value)
@@ -153,19 +153,18 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
                 return .failure(.invalidVariableType)
             }
         }
-        
+
         set {
             dynamicLock.lock()
             defer { dynamicLock.unlock() }
-            
+
             switch newValue {
             case .success(let value):
                 if let existing = dynamicVariables[name] {
                     switch existing {
                     case .value:
                         dynamicVariables[name] = .value(value)
-                        break
-                    case .index(_):
+                    case .index:
                         // currently, index casnnot be written this way.
                         break
                     default:
@@ -176,7 +175,7 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
                     // ✅ No existing entry—safe to write ephemeral
                     dynamicVariables[name] = .ephemeral(value, tick: tick)
                 }
-                
+
             case .failure:
                 // ✅ Only remove if it’s not .value
                 if let existing = dynamicVariables[name] {
@@ -192,30 +191,30 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
             }
         }
     }
-    
+
     func containsKey(_ name: String) -> Bool {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
         return dynamicVariables[name] != nil
     }
-    
+
     func remove(_ name: String) {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
         dynamicVariables.removeValue(forKey: name)
     }
-    
+
     func ensure(_ name: String, defaultValue: Any?) {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
-        
+
         guard dynamicVariables[name] == nil else {
             return  // ✅ Don't override existing values
         }
-        
+
         dynamicVariables[name] = .value(defaultValue)
     }
-    
+
     func endTick() {
         self.tick += 1
     }
@@ -253,18 +252,18 @@ public typealias SubscriptionMask = UInt32
 
 public class SubscriptionStreamExecutionContext: StreamExecutionContext, @unchecked Sendable {
     private let streamFlags: [String: SubscriptionMask]
-   
-    public init(streamFlags: [String : SubscriptionMask]?=nil) {
+
+    public init(streamFlags: [String: SubscriptionMask]?=nil) {
         self.streamFlags = streamFlags ?? [:]
     }
-    
+
     subscript(_ names: String...) -> SubscriptionMask {
         var result: SubscriptionMask = 0
-        
+
         for name in names {
             result |= streamFlags[name] ?? 0
         }
-        
+
         return result
     }
 }

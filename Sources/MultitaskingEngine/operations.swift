@@ -27,7 +27,7 @@ enum ExecutionFlags {
 protocol OperationExecutable: AnyObject, Sendable {
     var operationName: String { get }
     var operationID: Int { get }
-   
+
     var executionFlags: UInt64 { get set }  // Flags for execution control
     var state: OperationState { get set }
     var startTime: ContinuousClock.Instant { get set }
@@ -38,9 +38,9 @@ protocol OperationExecutable: AnyObject, Sendable {
 public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     public let operationID: Int = UUID().hashValue
     public let operationName: String
-    
+
     public var reference: AnyObject
-    
+
     var executionFlags: UInt64 = 0
     var state: OperationState = .initialization
     var startTime: ContinuousClock.Instant = .now
@@ -49,32 +49,32 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
     public var table: LintTable.Steppable
     public var lintCounter: Int = 0
 
-    public var previousTableNode: LintTable.Node? = nil
-    
+    public var previousTableNode: LintTable.Node?
+
     init(name: String?=nil, provider: RunnableLintProvider) {
         self.table = provider.table
         self.reference = provider
         self.operationName = name ?? "~unnamed~"
     }
-    
+
     @inline(__always)
     func execute() async -> OperationState {
-        execution: while true {
+        while true {
             if executionFlags & ExecutionFlags.yield != 0 {
                 self.state = .running
                 return .running
             }
-            
+
             let result = await executeStep()
             if result != .running {
                 self.state = result
                 return result }
         }
     }
-    
+
     private func executeStep() async -> OperationState {
         let result = await table.executionStep(runner: self)
-        
+
         switch result {
         case .firstRun, .running:
             break
@@ -116,14 +116,12 @@ public class Operation: @unchecked Sendable, OperationExecutable, LintRunner {
             return result
         case .initialization, .waitingForReturn:
             break
-        default:
+            default:
             fatalError("unexpected case: \(result)")
-            break
         }
-        
+
         lintCounter += 1
         self.state = .running
         return .running
    }
 }
-

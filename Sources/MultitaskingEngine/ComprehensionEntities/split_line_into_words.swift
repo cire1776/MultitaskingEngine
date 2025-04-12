@@ -47,7 +47,7 @@ final public class SplitLinesIntoWords: Comprehension.ExecutionEntity {
         executionContext[outputStream] = .success(word)
        return wordBuffer.isEmpty ? .proceed : .pump(self.publishes)
     }
-    
+
     func finalize() {
         while !wordBuffer.isEmpty {
             let word = wordBuffer.removeFirst()

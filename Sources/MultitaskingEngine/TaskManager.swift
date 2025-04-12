@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 class TaskManager {
     private var taskQueue: [TaskExecutable] = []
 

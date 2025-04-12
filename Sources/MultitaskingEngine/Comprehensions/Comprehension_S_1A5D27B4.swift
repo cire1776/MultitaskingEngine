@@ -29,44 +29,43 @@
 
 import Foundation
 
-
 final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchecked Sendable {
     public var context: SubscriptionStreamExecutionContext
     public var executionContext: StreamExecutionContext
-    
+
     public var table: LintTable.Steppable
-    
+
     public var operationID: Int
-    
+
     public let readFiles: ReadFiles
     public let skipOutput: SkipFilter
-    
+
     public let fileContext = StreamExecutionContext()
-    
+
     public let mainLoopID: Int = 2
     public let tickFlowID: Int = 1
-    
+
     public var pumpers: [Int] = []
-    
+
     required public init(executionContext: StreamExecutionContext?=nil) {
         guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
             fatalError("Expected a SubscriptionStreamExecutionContext!")
         }
-        
+
         let executionContext = executionContext ?? SubscriptionStreamExecutionContext()
 
         self.executionContext = executionContext
         self.context = self.executionContext as! SubscriptionStreamExecutionContext
         self.executionContext.subscriptions = Subscriptions(sources: 0x01)
-        
+
         operationID = Int("1A5D27B4", radix: 16)!
-        
+
         readFiles = ReadFiles(
             executionContext: self.executionContext,
             subscriptions: 0x0,
             publishes: 0x3,
         )
-        
+
         skipOutput = SkipFilter(
             valuesToSkip: ["output.txt"],
             stream: "filename",
@@ -75,20 +74,20 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
             publishes: 0x3,
         )
 
-        self.table = LintTable.Sequential(lints:[])
-        
-        self.table = LintTable.Sequential(lints:[
+        self.table = LintTable.Sequential(lints: [])
+
+        self.table = LintTable.Sequential(lints: [
             { _ in self.initialize() ; return .running },
             { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop(tickFlowEntityBlocks: flowEntities)); return .skipYield },
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
-            { _ in self.finalize() ; return .completed },
+            { _ in self.finalize() ; return .completed }
         ], identifier: 500)
     }
-    
+
     public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {
-        return Comprehension.Instance(blueprint: self,preinitializationLint: preinitialization_lint, executionContext: executionContext)
+        return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
     }
-    
+
     @inline(__always)
     private func initialize() {
         print("initialize")
@@ -100,7 +99,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         print("finalize")
         readFiles.finalize()
     }
-    
+
     public func readFilesBlock(runner: LintRunner? = nil) -> LintTable.Steppable {
         let outputStreams: SubscriptionMask = 0x3
         var result: EntityResult = .proceed
@@ -108,7 +107,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         return LintTable.Sequential(lints: [
             // Data Sources don't receive subscriptions
             { [self] _ in result = readFiles.next(); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) },
+            { [self] _ in dispatch(on: result, emitting: outputStreams) }
         ], identifier: 1776)
     }
 
@@ -120,7 +119,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputSubscriptions, emitting: outputStreams) },
             { [self] _ in result = skipOutput.include(); return .running },
-            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) },
+            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) }
         ], identifier: 1777)
     }
 
@@ -135,9 +134,9 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
                 guard let pathname = try? executionContext["pathname"].get()! else {
                     return .unusualExecutionEvent(.exception("subscription access error."))
                 }
-                
+
                 fileContext["filename"] = .success(pathname)
-                
+
                 let processFile = Comprehension_ProcessFile(executionContext: fileContext)
                 result = processFile.execute()
                 print("----------- output: \(try! fileContext["output"].get()!) -----------")
@@ -165,21 +164,20 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
                     subscriptions: 0x4,
                     publishes: 0x8,
                 )
-                
+
                 result = sync.process()
-            
+
                 return .running
             },
-            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) },
+            { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) }
 
         ], identifier: 1779)
     }
-    
+
     lazy var flowEntities: [(LintRunner) -> LintTable.Steppable] = [
         { [self] in readFilesBlock(runner: $0) },
         { [self] in skipOutputBlock(runner: $0) },
         { [self] in processFileBlock(runner: $0) },
-        { [self] in synchronizeBlock(runner: $0) },
+        { [self] in synchronizeBlock(runner: $0) }
     ]
 }
-

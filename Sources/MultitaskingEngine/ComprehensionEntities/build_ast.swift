@@ -38,7 +38,7 @@ final public class BuildAST: Comprehension.ExecutionEntity {
     func drain() -> EntityResult {
         return process()
     }
-    
+
     func finalize() {
         executionContext[outputStream] = .success(buffer)
     }

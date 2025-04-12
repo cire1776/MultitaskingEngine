@@ -55,55 +55,55 @@ final class Comprehension_ProcessFile {
         executionLoop: while true {
             tickLoop: repeat {
                 switch readLine.next() {
-                case .proceed, .pump(_):
+                case .proceed, .pump:
                     break
-                    
+
                 case .eof:
                     break executionLoop
-                    
+
                 case .unusualExecutionEvent:
                     return .unusualExecutionEvent
-                    
+
                 case .notAvailable:
                     break tickLoop
                 }
-                
+
                 _ = printLine.process()
-                
+
                 switch addTerminator.process() {
-                case .proceed, .pump(_):
+                case .proceed, .pump:
                     break
-                    
+
                 case .notAvailable:
                     break tickLoop
-                    
+
                 case .eof:
                     break executionLoop
-                
+
                 case .unusualExecutionEvent:
                     return .unusualExecutionEvent
                 }
-                
+
                 switch storeLine.process() {
-                case .proceed, .pump(_):
+                case .proceed, .pump:
                     break
-                    
+
                 case .notAvailable:
                     break tickLoop
-                    
+
                 case .eof:
                     break executionLoop
-                    
+
                 case .unusualExecutionEvent:
                     return .unusualExecutionEvent
                 }
             } while false
-            
+
             executionContext.endTick()
         }
-        
+
         readLine.finalize()
-        
+
         return .proceed
     }
 }

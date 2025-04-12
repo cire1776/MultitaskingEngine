@@ -14,7 +14,7 @@ final public class EmitString: Comprehension.DataSourceEntity {
 
     public let subscriptions: SubscriptionMask
     public var publishes: SubscriptionMask
-    
+
     public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
@@ -22,7 +22,6 @@ final public class EmitString: Comprehension.DataSourceEntity {
         self.subscriptions = subscriptions
         self.publishes = publishes
 
-                
         currentIndex = 0
     }
 

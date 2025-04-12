@@ -17,7 +17,7 @@ import Foundation
 func captureStdOut(_ execute: () -> Void) -> String {
     let pipe = Pipe()
     let originalStdOut = dup(fileno(stdout))  // ✅ Save original stdout
-    
+
     dup2(pipe.fileHandleForWriting.fileDescriptor, fileno(stdout))  // ✅ Redirect stdout
     execute()  // ✅ Run the function
 
@@ -42,25 +42,25 @@ struct StdoutRedirector {
         self.fileHandle = pipe.fileHandleForReading
         self.originalStdout = dup(STDOUT_FILENO)
     }
-    
+
     // Redirect stdout to the pipe
     mutating func redirectToPipe() {
         dup2(pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
     }
-    
+
     // Restore stdout to the console
     func restoreToConsole() {
         dup2(originalStdout, STDOUT_FILENO)
     }
-    
+
     // Read and return the captured output (non-blocking)
     func capturedOutput() -> String {
         var output = ""
-        
+
         // Read available data from the pipe non-blocking
         let data = fileHandle.availableData
         output += String(data: data, encoding: .utf8) ?? ""
-        
+
         return output
     }
 }
@@ -71,13 +71,13 @@ func redirectionFromTheConsoleToAString() -> String {
 
     // Redirect stdout to the pipe
     redirector.redirectToPipe()
-    
+
     // The output of print() will go to the pipe instead of the console
     print("This is captured in a string.")
-    
+
     // Get the captured output
     let output = redirector.capturedOutput()
-    
+
     // Restore stdout to the console
     redirector.restoreToConsole()
 

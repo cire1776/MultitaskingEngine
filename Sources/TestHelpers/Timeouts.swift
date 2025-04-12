@@ -12,21 +12,21 @@ public func withTimeout(seconds: Double, operation: @Sendable @escaping () async
             await operation()
             return true
         }
-        
+
         group.addTask {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             return false
         }
-        
+
         let result = await group.reduce(false) { $0 || $1 }
-        
+
         return result
     }
 
     if didFinish {
         print("🏁 timeout didnt trigger. ")
     }
-    
+
     if !didFinish {
         fatalError("❌ Test timed out after \(seconds) seconds")
     }
@@ -34,23 +34,23 @@ public func withTimeout(seconds: Double, operation: @Sendable @escaping () async
 
 actor Status {
     var stopped = false
-    
+
     public func stop() {
         stopped =  true
     }
 }
- 
+
 public func whileTimeout(
     seconds: Double,
     condition: @Sendable @escaping () async -> Bool
 ) async -> Bool {
 //    var conditionTask: Task<Bool,Never>!=nil
     let status = Status()
-    
+
     // Define tasks BEFORE adding them to the group
     let timeoutTask = Task {
         let deadline = Date().addingTimeInterval(seconds)
-        while Date().timeIntervalSince(deadline) < 0  {
+        while Date().timeIntervalSince(deadline) < 0 {
             let stopped = await status.stopped
             if Task.isCancelled || stopped { return false }  // ✅ Stop early if cancelled
             try? await Task.sleep(nanoseconds: 5_000_000) // ✅ Reduce CPU load
@@ -80,11 +80,11 @@ public func whileTimeout(
 //        
 //        return await group.reduce(false) { $0 || $1 } // Returns first `true`
 //    }
-    
+
     let didFinish = await withTaskGroup(of: Bool.self) { group -> Bool in
         group.addTask { await conditionTask.value }
         group.addTask { await timeoutTask.value }
-        
+
 //        var result = false
 //        for await value in group {
 //            if value {

@@ -35,25 +35,25 @@ actor OperationManager {
             await processNextOperation()  // ✅ Only processes ONE operation per loop
         }
     }
-    
+
     public func pump(retries: UInt, until: () async -> Bool) async -> UInt {
         var tries = retries
-        
+
         while await !until() && tries > 0 {
             tries -= 1
-            
+
             // ✅ Ensure `pump()` only runs if there are active operations
 //            guard head != tail else {
 //                print("⏳ Pump retry called, but queue is empty. Doing nothing.")
 //                return retries - tries
 //            }
-            
+
             await pump()
         }
-        
+
         return retries - tries
     }
-    
+
     func isQueued(_ operation: any OperationExecutable) -> Bool {
         self.mainQueue.contains(where: { $0?.operationID == operation.operationID })
     }
@@ -68,14 +68,14 @@ actor OperationManager {
         }
 
         print("📌 Adding operation: \(operation.operationName) (Queue size: \(calculateQueueSize()))")
-        
+
         if operation.lastProcessed == pumpCycleID {
             nextCycleQueue.append(operation)
         } else {
             mainQueue[tail] = operation
             tail = nextTail
         }
-        
+
         if let continuation = waitingContinuation {
             print("🔄 Waking up OM!")
             waitingContinuation = nil
@@ -86,13 +86,13 @@ actor OperationManager {
 
         return true
     }
-    
+
     private func removeOperation(_ operation: any OperationExecutable) {
         if let index = mainQueue.firstIndex(where: { $0?.operationID == operation.operationID}) {
             mainQueue[index] = nil
         }
     }
-    
+
     public func addAwait(_ operation: any OperationExecutable) async {
         guard operation.state == .running else { operation.state = .unusualExecutionEvent(.exception("~ULang internal~: Operation not running"))
             return
@@ -101,7 +101,7 @@ actor OperationManager {
         operation.state = .awaiting
         await self.processNextOperation()
     }
-    
+
     public func awaitDone(_ operation: any OperationExecutable) async {
         guard operation.state == .awaiting else { operation.state = .unusualExecutionEvent(.exception("~ULang internal~: Operation not awaiting"))
             return
@@ -109,11 +109,11 @@ actor OperationManager {
         operation.state = .running
         _ = await addOperation(operation)
     }
-    
+
     func start() async {
         guard !isRunning || isPumping else { return }
         isRunning = true
-        
+
         repeat {
             if head == tail && !isPumping {
                 print("⏳ OM is waiting for new tasks...")
@@ -122,12 +122,12 @@ actor OperationManager {
                 }
                 print("✅ OM resumed!")
             }
-            
+
             guard isRunning || isPumping else { break }
             await processNextOperation()
-            
+
         } while isRunning || isPumping
-        
+
         isRunning = false
         isPumping = false
         print("✅ OperationManager has stopped.")
@@ -137,7 +137,7 @@ actor OperationManager {
         // ✅ If there are no more operations in the queue, check `nextCycleQueue`
         if head == tail {
             pumpCycleID += 1
-            
+
             if !nextCycleQueue.isEmpty {
                 print("📥 Moving operations from nextCycleQueue to mainQueue...")
 
@@ -181,7 +181,7 @@ actor OperationManager {
 
         await self.processResult(operation, result)
     }
-    
+
     private func processResult(_ operation: OperationExecutable, _ result: OperationState) async {
         operation.lastProcessed = pumpCycleID  // ✅ Track the correct cycle
         switch result {
@@ -190,7 +190,7 @@ actor OperationManager {
                 operation.state = .running
                 _ = await operationScheduler.addOperation(operation)
                 fallthrough
-            
+
             case .running:
                  _ = await addOperation(operation)
 
@@ -202,9 +202,9 @@ actor OperationManager {
                     nextCycleQueue.append(operation)  // ✅ Now safely handled in addOperation()
                 }
 
-        case .unusualExecutionEvent(.abort(_)):
+        case .unusualExecutionEvent(.abort):
             print("🏁 Operation \(operation.operationName) aborted execution. No further action.")
-            
+
         case .completed:
             print("🏁 Operation \(operation.operationName) finished execution. No further action.")
 
@@ -215,20 +215,20 @@ actor OperationManager {
 
     func stopNow() async {
         isRunning = false
-        
+
         // ✅ Wake up `OM` if it is suspended waiting for operations
         if let continuation = waitingContinuation {
             waitingContinuation = nil
             continuation.resume()
         }
-        
+
         // ✅ Clear queue to ensure no further operations run
         head = tail
         mainQueue = Array(repeating: nil, count: queueSize)
-        
+
         print("🚨 OperationManager stopped immediately.")
     }
-    
+
     func calculateQueueSize() -> Int {
         return (tail >= head) ? (tail - head) : (queueSize - head + tail)
     }

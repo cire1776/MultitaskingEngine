@@ -8,10 +8,10 @@
 import Foundation
 @testable import MultitaskingEngine
 
-final class MockOperation:OperationExecutable, @unchecked Sendable {
+final class MockOperation: OperationExecutable, @unchecked Sendable {
     let operationName: String
     var operationID: Int = UUID().hashValue
-    
+
     var executionFlags: UInt64 = 0
     var state: MultitaskingEngine.OperationState = .initialization
     var startTime: ContinuousClock.Instant = .now
@@ -31,7 +31,7 @@ final class MockOperation:OperationExecutable, @unchecked Sendable {
 
             if state == .completed {
                 print("✅ \(operationName) has completed.")
-                
+
                 let currentValue = MultitaskingEngine.completedOperations.load(ordering: .relaxed)  // ✅ Read atomic value
                 let newValue = currentValue + 1
                 MultitaskingEngine.completedOperations.store(newValue, ordering: .relaxed)  // ✅ Store new atomic value  // ✅ Increment the global completed count

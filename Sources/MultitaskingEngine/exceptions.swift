@@ -12,10 +12,10 @@ protocol ExceptionHandler: Actor {
 actor ExceptionHandlerActor: ExceptionHandler {
     func handleException(_ operation: OperationExecutable, message: String) async -> Bool {
         print("MTE Exception in operation \(operation.operationName): \(message)")
-        
+
         // Simulated async logging
         try! await Task.sleep(nanoseconds: 500_000_000)
-        
+
         return message.contains("non-critical")
     }
 }
@@ -29,5 +29,3 @@ struct MTEWarningHandler: WarningHandler {
         print("⚠️ Warning from \(operation.operationName): \(message)")
     }
 }
-
-

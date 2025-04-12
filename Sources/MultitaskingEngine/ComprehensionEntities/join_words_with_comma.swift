@@ -12,7 +12,7 @@ final public class JoinWordsWithComma: Comprehension.ExecutionEntity, Comprehens
 
     public var subscriptions: SubscriptionMask
     public var publishes: SubscriptionMask
-    
+
     private var buffer: [String] = []
 
     public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
@@ -35,7 +35,7 @@ final public class JoinWordsWithComma: Comprehension.ExecutionEntity, Comprehens
     public func drain() -> EntityResult {
         return .notAvailable
     }
-    
+
     func finalize() {
         let line = buffer.joined(separator: ",")
         executionContext[outputStream] = .success(line)

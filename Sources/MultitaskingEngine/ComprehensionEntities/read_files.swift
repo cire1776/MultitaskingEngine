@@ -16,7 +16,7 @@ final public class ReadFiles: Comprehension.DataSourceEntity {
 
     public var subscriptions: SubscriptionMask
     public var publishes: SubscriptionMask
-    
+
     public init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.filenameStream = aliasMap["filename"] ?? "filename"
         self.pathnameStream = aliasMap["pathname"] ?? "pathname"
@@ -32,7 +32,7 @@ final public class ReadFiles: Comprehension.DataSourceEntity {
 
     public func next() -> EntityResult {
         guard let file = enumerator?.nextObject() as? String else { return .eof }
-        
+
         executionContext[filenameStream] = .success(file)
         executionContext[pathnameStream] = .success("\(self.basePath)/\(file)")
         return .proceed

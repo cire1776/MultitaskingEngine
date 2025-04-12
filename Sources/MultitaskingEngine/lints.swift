@@ -20,10 +20,10 @@ public enum LintTable {
 
     public protocol Steppable {
         var identifier: Int { get set }
-        
+
         // Execute the next lint and return an OperationState.
         func executionStep(runner: LintRunner) async -> OperationState
-        
+
         mutating func prepend(_ lint: @escaping Lint)
     }
 
@@ -45,34 +45,34 @@ extension LintTable {
     public struct Sequential: Steppable {
         public var lints: LintArray
         public var identifier: Int
-        
+
         public init(lints: LintArray, identifier: Int = 0) {
             self.lints = lints
             self.identifier = identifier
         }
-        
+
         public mutating func prepend(_ lint: @escaping Lint) {
             lints.insert(lint, at: 0)
         }
-        
+
         @inline(__always)
         public func executionStep(runner: LintRunner) async -> OperationState {
             guard runner.lintCounter < self.lints.count else { return .completed }
-            
+
             return await lints[runner.lintCounter](runner)
         }
     }
-    
+
     /// A loop lint table resets its counter once a lint signals .completed.
     public struct Loop: Steppable {
         public var lints: LintArray
         public var identifier: Int
-        
+
         public init(lints: LintArray, identifier: Int = 0) {
             self.lints = lints
             self.identifier = identifier
         }
-                
+
         public mutating func prepend(_ lint: @escaping Lint) {
             lints.insert(lint, at: 0)
         }
@@ -89,31 +89,31 @@ extension LintTable {
             return result
         }
     }
-    
+
     public class Prefaced: Steppable {
         private var preface: LintTable.Sequential
         private var main: LintTable.Steppable
-        
+
         private var isPrefaceRunning = true
         private var aborted: Bool = false
-        
+
         public var identifier: Int
-        
+
         public init(preface: LintTable.Sequential, main: LintTable.Steppable, identifier: Int=0) {
             self.preface = preface
             self.main = main
 
             self.identifier = identifier
         }
-        
+
         public func prepend(_ lint: @escaping Lint) {
             fatalError("Not Implemented")
         }
-        
+
         public func executionStep(runner: LintRunner) async -> OperationState {
             if aborted { return .completed }
-            
-            if (isPrefaceRunning) {
+
+            if isPrefaceRunning {
                 let result = await preface.executionStep(runner: runner)
                 if result == .running { return .running }
                 self.isPrefaceRunning = false
@@ -138,9 +138,9 @@ public protocol LintProvider: AnyObject {
 public protocol LintRunner: AnyObject {
     var table: LintTable.Steppable { get set }
     var lintCounter: Int { get set }
-    
+
     var reference: AnyObject { get set }
-    
+
     var previousTableNode: LintTable.Node? { get set }
 
     func pushSuboperation(table: LintTable.Steppable)
@@ -162,7 +162,7 @@ extension LintRunner {
 
         if identifier != 0 {
             var current = self.previousTableNode
-            
+
             // Traverse until a node with a matching identifier is found.
             while identifier != 0,
                   let node = current,
@@ -171,7 +171,7 @@ extension LintRunner {
             }
             target = current
         }
-        
+
         if let target = target {
             self.table = target.table
             self.lintCounter = target.counter
@@ -188,25 +188,25 @@ public protocol RunnableLintProvider: LintProvider {  }
 public class ManualLintRunner: LintRunner {
     public var table: LintTable.Steppable
     public var lintCounter: Int = 0
-    
+
     public var reference: AnyObject
-    
-    public var previousTableNode: LintTable.Node? = nil
-    
+
+    public var previousTableNode: LintTable.Node?
+
     public init(provider: RunnableLintProvider) {
         self.table = provider.table
         self.reference = provider // held to prevent disposal
     }
-   
+
     public func executeAll() async -> OperationState {
         var result: OperationState
         repeat { result = await execute() } while result == .running
         return result
     }
-    
+
     public func execute() async -> OperationState {
         let result = await table.executionStep(runner: self)
-        
+
         switch result {
         case .firstRun, .running:
             break
@@ -243,9 +243,8 @@ public class ManualLintRunner: LintRunner {
         case .unusualExecutionEvent:
             // Exit early if a lint signals suspension or an error.
             return result
-        default:
+            default:
             fatalError("unexpected case: \(result)")
-            break
         }
         lintCounter += 1
         return .running

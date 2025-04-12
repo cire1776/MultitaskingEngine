@@ -11,9 +11,9 @@ import Foundation
 final public class ReadLineFromFile: Comprehension.DataSourceEntity {
     let inputStream: String
     let outputStream: String
-    
+
     private(set) var filename: String!
-    
+
     private var fileHandle: FileHandle?
     private var iterator: IndexingIterator<[String]>?
     private var executionContext: StreamExecutionContext
@@ -22,11 +22,11 @@ final public class ReadLineFromFile: Comprehension.DataSourceEntity {
 
     public var subscriptions: SubscriptionMask
     public var publishes: SubscriptionMask
-    
+
     public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
-        
+
         self.executionContext = executionContext
         self.subscriptions = subscriptions
         self.publishes = publishes
@@ -41,7 +41,7 @@ final public class ReadLineFromFile: Comprehension.DataSourceEntity {
         }
         self.filename = filename
     }
-    
+
     public func next() -> EntityResult {
         // ✅ Lazy initialization of fileHandle (first call to `next()`)
         if !hasInitialized {
@@ -63,9 +63,9 @@ final public class ReadLineFromFile: Comprehension.DataSourceEntity {
             if let lineRange = buffer.range(of: Data("\n".utf8)) {
                 let lineData = buffer.subdata(in: 0..<lineRange.lowerBound)
                 let nextIndex = lineRange.upperBound  // ✅ Ensure we remove only the newline
-                
+
                 buffer.removeSubrange(0..<nextIndex)  // ✅ Correctly remove up to but not beyond
-                
+
                 if let lineString = String(data: lineData, encoding: .utf8) {
                     executionContext[outputStream] = .success(lineString)
                     return .proceed

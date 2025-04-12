@@ -9,10 +9,10 @@ public class AddLineToBuffer: Comprehension.ExecutionEntity {
     private var executionContext: StreamExecutionContext
     let inputStream: String
     let outputStream: String
-    
+
     public var subscriptions: SubscriptionMask
     public var publishes: SubscriptionMask
-    
+
     public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
@@ -20,9 +20,9 @@ public class AddLineToBuffer: Comprehension.ExecutionEntity {
         self.subscriptions = subscriptions
         self.publishes = publishes
     }
-    
+
     func initialize() {
-        executionContext.ensure(outputStream,defaultValue: [])
+        executionContext.ensure(outputStream, defaultValue: [])
     }
 
    public func process() -> EntityResult {
@@ -30,7 +30,6 @@ public class AddLineToBuffer: Comprehension.ExecutionEntity {
             executionContext.triggerUnusualEvent(.warning("Nil input received."))
             return .notAvailable
         }
-        
 
         let current = try? executionContext[outputStream].get()
 
@@ -42,7 +41,7 @@ public class AddLineToBuffer: Comprehension.ExecutionEntity {
         } else {
             executionContext.pendingEvent = .warning("Stream '\(outputStream)' is not a [String]. It is: \(type(of: current ?? "nil"))")
         }
-        
+
         return .proceed
     }
 }

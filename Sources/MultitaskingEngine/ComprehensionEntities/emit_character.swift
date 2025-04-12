@@ -41,7 +41,7 @@ final public class EmitCharacter: Comprehension.ExecutionEntity {
             case let .success(nextLine as String):
                 buffer = nextLine
                 index = buffer.startIndex
-            case .failure(_), .success(_):
+            case .failure, .success:
                 return .notAvailable
             }
         }

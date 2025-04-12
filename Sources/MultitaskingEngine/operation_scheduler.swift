@@ -11,65 +11,64 @@ protocol OperationScheduling: AnyObject, Sendable {
     func addOperation(_ operation: any OperationExecutable) async -> Bool
 #if DEBUG
     func _schedule() async  // ✅ Only available in debug builds
-    func _contains(_ operation: OperationExecutable) async-> Bool
+    func _contains(_ operation: OperationExecutable) async -> Bool
 #endif
 }
 
-
 actor OperationScheduler: OperationScheduling {
     private var activeQueue: [OperationExecutable?] = []
-    
+
 #if DEBUG
     func _schedule() async {
         await scanOperations()
     }
-    
+
     func _contains(_ operation: OperationExecutable) -> Bool {
         guard !activeQueue.isEmpty else { return false }  // ✅ Prevents division by zero
-        
+
         var index = head
-        
+
         while index != tail {
             if let op = activeQueue[index], op === operation {
                 return true  // ✅ Found the operation in the queue
             }
             index = (index + 1) % activeQueue.count  // ✅ Safe modulo operation
         }
-        
-        return false 
+
+        return false
     }
 #endif
-    
+
     private let queueSize: Int
     private var head: Int = 0
     private var tail: Int = 0
     private var isRunning = false
     private let maxExecutionTime: Duration = .milliseconds(50)  // ✅ 50ms max execution per OE
-    
+
     init(queueSize: Int = 10_000) {
         self.queueSize = queueSize
         self.activeQueue = Array(repeating: nil, count: queueSize)
     }
-    
+
     func addOperation(_ operation: any OperationExecutable) async -> Bool {
         let nextTail = (tail + 1) % queueSize
-        
+
         if nextTail == head {
             print("⚠️ OS Queue full! Cannot track operation: \(operation.operationName)")
             return false
         }
-        
+
         activeQueue[tail] = operation
         tail = nextTail
-        
+
         return true
     }
-    
+
     func start() async {
         guard !isRunning else { return }
         isRunning = true
         print("🚀 OperationScheduler started")
-        
+
         while isRunning {
             if head == tail {
                 print("⚠️ No operations need yielding, suspending OS...")
@@ -77,9 +76,9 @@ actor OperationScheduler: OperationScheduling {
             await scanOperations()
         }
     }
-    
+
     private func scanOperations() async {
-        var index = self.head        
+        var index = self.head
         var newQueue: [OperationExecutable?] = Array(repeating: nil, count: queueSize)
         var newTail = 0
 
@@ -101,7 +100,7 @@ actor OperationScheduler: OperationScheduling {
             }
             // ✅ Only keep operations that aren't completed or aborted
             switch operation.state {
-            case .completed, .unusualExecutionEvent(.abort(_)):
+            case .completed, .unusualExecutionEvent(.abort):
                 break
                 // Skip adding this operation to the new queue
             default:
@@ -116,7 +115,7 @@ actor OperationScheduler: OperationScheduling {
         activeQueue = newQueue
         tail = newTail
     }
-    
+
     public func stopNow() {
         self.isRunning = false
         head = tail

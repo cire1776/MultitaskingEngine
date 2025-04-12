@@ -19,22 +19,22 @@ final public class Subscriptions {
     private var sources: SubscriptionMask = 0
     public private(set) var exhausted: SubscriptionMask = 0
     private var _available: SubscriptionMask = 0
-   
+
     public init(sources: SubscriptionMask = .max) {
         self.sources = sources
         self.exhausted = 0
         self._available = 0
     }
-    
+
     public var available: SubscriptionMask {
         get { _available & ~exhausted }
     }
-    
+
     @inline(__always)
     public func areAllAvailable(_ mask: SubscriptionMask) -> Bool {
         (self.available & mask) == mask
     }
-    
+
     @inline(__always)
     public func areAllExhausted() -> Bool {
         (self.exhausted & sources) == sources
@@ -44,17 +44,17 @@ final public class Subscriptions {
     public func publish(_ mask: SubscriptionMask) {
         _available |= (mask & ~exhausted)
     }
-    
+
     @inline(__always)
     public func unpublish(_ mask: SubscriptionMask) {
         _available &= ~mask
     }
-    
+
     @inline(__always)
     public func exhaust(_ mask: SubscriptionMask) {
         exhausted |= mask
     }
-    
+
     @inline(__always)
     public func reset() {
         self._available = 0
@@ -63,24 +63,24 @@ final public class Subscriptions {
 
 final public class FlowEntity {
     public static func graphFlow(_ comprehension: Comprehension.Subscription, for entities: [(LintTable.Steppable?) -> LintTable.Steppable]) -> FlowEntity? {
-        var current: FlowEntity? = nil
+        var current: FlowEntity?
         for entity in entities.reversed() {
             current = FlowEntity(root: nil, next: current, table: entity(current?.table))
         }
-        
+
         let root = current
         current = root?.next
         while current != nil {
             current?.root = root
             current = current?.next
         }
-        
+
         return root
     }
-    
+
     public private(set) var root: FlowEntity?
     public let next: FlowEntity?
-    
+
     public let table: LintTable.Steppable
 
     public init(root: FlowEntity?, next: FlowEntity?, table: LintTable.Steppable) {
@@ -94,62 +94,62 @@ public enum Comprehension {
     public protocol Common: AnyObject, LintProvider {
         var executionContext: StreamExecutionContext { get }
         var table: LintTable.Steppable { get }
-        
-        var operationID: Int           { get }
-        var operationName: String      { get }
-        
-        var mainLoopID: Int            { get }
-        var tickFlowID: Int            { get }
+
+        var operationID: Int { get }
+        var operationName: String { get }
+
+        var mainLoopID: Int { get }
+        var tickFlowID: Int { get }
 
         init(executionContext: StreamExecutionContext?)
-        
+
         func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Instance
     }
-    
+
     public protocol Standard: Common {  }
-    
+
     public protocol Subscription: Common {
         var context: SubscriptionStreamExecutionContext { get }
-        
-        var pumpers: [Int]  { get set }
-        
+
+        var pumpers: [Int] { get set }
+
         @inline(__always)
         func modifyTickLints(_ lints: inout LintArray)
-        
+
         @inline(__always)
         func produceTickFlow(flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
 
         @inline(__always)
         func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
     }
-    
+
     final public class Instance: RunnableLintProvider {
         let blueprintName: String
         var executionContext: StreamExecutionContext
         public private(set) var table: LintTable.Steppable
-        
+
         public var operationName: String {
             "\(blueprintName)__\(String(format: "%X", UUID().uuidString.hashValue))"
         }
-        
+
         init(blueprint: Common, preinitializationLint: Lint?=nil, executionContext: StreamExecutionContext?=nil) {
             self.blueprintName = blueprint.operationName
-            
+
             self.executionContext = executionContext ?? blueprint.executionContext
 
             self.table = blueprint.table
-            
+
             if let preinitializationLint = preinitializationLint {
                 self.table.prepend(preinitializationLint)
             }
         }
     }
-    
+
     public protocol Entity {
         var subscriptions: SubscriptionMask { get }
         var publishes: SubscriptionMask { get }
     }
-    
+
     public protocol ExecutionEntity {
         func process() -> EntityResult
     }
@@ -169,15 +169,15 @@ public enum Comprehension {
 
 public extension Comprehension.Standard {
     var operationName: String {
-        "Comprehension_\(String(format: "%X",operationID))"
+        "Comprehension_\(String(format: "%X", operationID))"
     }
 }
 
 public extension Comprehension.Subscription {
     var operationName: String {
-        "Comprehension_S_\(String(format: "%X",operationID))"
+        "Comprehension_S_\(String(format: "%X", operationID))"
     }
-    
+
     @inline(__always)
     func subscriptionGuard(
         using inputSubscriptions: SubscriptionMask,
@@ -186,15 +186,15 @@ public extension Comprehension.Subscription {
             executionContext.executionMode = .draining
             return .localBreak
         }
-        
+
             guard context.subscriptions.areAllAvailable(inputSubscriptions) else {
                 context.subscriptions.unpublish(outputStreams)
             return .localBreak
         }
-        
+
         return .running
     }
-    
+
     @inline(__always)
     func drainableSubscriptionGuard(
         using inputSubscriptions: SubscriptionMask,
@@ -203,12 +203,12 @@ public extension Comprehension.Subscription {
             executionContext.executionMode = .draining
             return .running
         }
-        
+
         guard context.subscriptions.areAllAvailable(inputSubscriptions) else {
             context.subscriptions.unpublish(outputStreams)
             return .localBreak
         }
-        
+
         return .running
     }
 
@@ -226,7 +226,7 @@ public extension Comprehension.Subscription {
             context.subscriptions.unpublish(outputStreams)
         case .proceed:
             context.subscriptions.publish(outputStreams)
-        case .pump(_):
+        case .pump:
             context.subscriptions.publish(outputStreams)
             guard let runner = runner else {
                 fatalError("runner must be provided for pumper.")
@@ -237,21 +237,21 @@ public extension Comprehension.Subscription {
             assert(executionContext.pendingEvent != nil)
             return .unusualExecutionEvent(executionContext.pendingEvent!)
         }
-        
+
         return .running
     }
-    
+
     @inline(__always)
     func modifyTickLints(_ lints: inout LintArray) {  }
-    
+
     @inline(__always)
     func produceTickFlow(flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
         var lints: LintArray = flows.map { block in
             { $0.pushSuboperation(table: block($0)); return .skipYield }
         }
-        
+
         modifyTickLints(&lints)
-        
+
         lints.append({ [self] in
             if let pumper = self.pumpers.popLast() {
                 $0.lintCounter = pumper - 1
@@ -260,10 +260,10 @@ public extension Comprehension.Subscription {
             }
             return executionContext.isDraining ? .nonLocalBreak(mainLoopID) : .completed
         })
-        
+
         return LintTable.Sequential(lints: lints, identifier: self.tickFlowID)
     }
-    
+
     @inline(__always)
     func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
         return LintTable.Loop(lints: [
@@ -271,10 +271,10 @@ public extension Comprehension.Subscription {
             { [/*unowned*/ self] in
                 $0.pushSuboperation(table: produceTickFlow(flows: tickFlowEntityBlocks)); return .skipYield
             },
-            { [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, // continue to loop
+            { [/*unowned*/ self] _ in executionContext.endTick(); return .completed } // continue to loop
         ], identifier: mainLoopID)
     }
-    
+
     func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
         return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
     }

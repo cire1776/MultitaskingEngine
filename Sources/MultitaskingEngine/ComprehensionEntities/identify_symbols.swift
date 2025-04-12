@@ -11,10 +11,10 @@ final public class IdentifySymbols: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String
-    
+
     public let subscriptions: SubscriptionMask
     public var publishes: SubscriptionMask
-    
+
     public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
@@ -23,7 +23,7 @@ final public class IdentifySymbols: Comprehension.ExecutionEntity {
         self.publishes = publishes
 
     }
-    
+
    public func process() -> EntityResult {
         print("---- Identifying Symbols ----")
         guard case .success(let nextChar as Character) = executionContext[inputStream],

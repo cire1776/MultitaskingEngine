@@ -10,7 +10,7 @@
 class DummyLintProvider: RunnableLintProvider {
     var table: LintTable.Steppable = LintTable.Sequential(lints: [])
     var operationName: String
-    
+
     init(table: LintTable.Steppable, operationName: String?=nil) {
         self.table = table
         self.operationName = operationName ?? "DummyOperation"

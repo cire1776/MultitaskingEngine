@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct APMTime: Comparable  {
+struct APMTime: Comparable {
     static func < (lhs: APMTime, rhs: APMTime) -> Bool {
         lhs.preciseRelativeTimestamp < rhs.preciseRelativeTimestamp
     }
-    
+
 //    public static let reference = { logger.log(level: .debug, message: "Setting Reference Timestamp"); return ContinuousClock().now }()
     public static let reference = { logger.log(level: .debug, message: "Setting Reference Timestamp"); return DispatchTime.now() }()
 
@@ -67,7 +67,7 @@ struct APMTime: Comparable  {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds] // ✅ Includes sub-second precision
 
         let isoString = formatter.string(from: absoluteTimestamp) // "2025-03-12T14:32:45.123456Z"
-        
+
         let seconds = Int(absoluteTimestamp.timeIntervalSince1970)
         let nanoseconds = Int((absoluteTimestamp.timeIntervalSince1970 - Double(seconds)) * 1_000_000_000)
 
