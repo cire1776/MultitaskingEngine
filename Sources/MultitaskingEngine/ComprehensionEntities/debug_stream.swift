@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/7/25.
 //
 
-final public class DebugStream: Comprehension.Entity {
+final public class DebugStream: Comprehension.ExecutionEntity {
     var executionContext: StreamExecutionContext
     // no input
     // no output

@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/6/25.
 //
 
-final public class SplitLinesIntoWords: Comprehension.Entity {
+final public class SplitLinesIntoWords: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

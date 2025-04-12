@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/6/25.
 //
 
-final public class JoinWordsWithComma: Comprehension.Entity {
+final public class JoinWordsWithComma: Comprehension.ExecutionEntity, Comprehension.DrainableEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

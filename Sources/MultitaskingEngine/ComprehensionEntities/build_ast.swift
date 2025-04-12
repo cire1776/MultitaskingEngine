@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/7/25.
 //
 
-final public class BuildAST: Comprehension.Entity {
+final public class BuildAST: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

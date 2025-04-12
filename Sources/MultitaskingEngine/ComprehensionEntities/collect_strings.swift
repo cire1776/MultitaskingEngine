@@ -8,7 +8,7 @@
 
 import Foundation
 
-final class CollectStrings: Comprehension.Entity {
+final class CollectStrings: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

@@ -149,6 +149,22 @@ public enum Comprehension {
         var subscriptions: SubscriptionMask { get }
         var publishes: SubscriptionMask { get }
     }
+    
+    public protocol ExecutionEntity {
+        func process() -> EntityResult
+    }
+
+    public protocol DataSourceEntity {
+        func next() -> EntityResult
+    }
+
+    public protocol FilterEntity {
+        func include() -> EntityResult
+    }
+
+    public protocol DrainableEntity: ExecutionEntity {
+        func drain() -> EntityResult
+    }
 }
 
 public extension Comprehension.Standard {

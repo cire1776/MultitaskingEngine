@@ -7,7 +7,7 @@
 
 import Foundation
 
-final public class ReadFiles: Comprehension.Entity {
+final public class ReadFiles: Comprehension.DataSourceEntity {
     private var basePath: String = "."
     let filenameStream: String
     let pathnameStream: String

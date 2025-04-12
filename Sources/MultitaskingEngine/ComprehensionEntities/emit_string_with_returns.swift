@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/9/25.
 //
 
-final public class EmitStringWithReturns: Comprehension.Entity {
+final public class EmitStringWithReturns: Comprehension.DataSourceEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

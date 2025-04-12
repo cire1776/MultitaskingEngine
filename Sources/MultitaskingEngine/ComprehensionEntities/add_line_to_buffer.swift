@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 3/17/25.
 //
 
-public class AddLineToBuffer: Comprehension.Entity {
+public class AddLineToBuffer: Comprehension.ExecutionEntity {
     private var executionContext: StreamExecutionContext
     let inputStream: String
     let outputStream: String

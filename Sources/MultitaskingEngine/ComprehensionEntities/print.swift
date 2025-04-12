@@ -4,7 +4,7 @@
 //
 //  Created by Eric Russell on 3/21/25.
 
-public class Print: Comprehension.Entity {
+public class Print: Comprehension.ExecutionEntity {
     var executionContext: StreamExecutionContext
     let inputStream: String
     // no output

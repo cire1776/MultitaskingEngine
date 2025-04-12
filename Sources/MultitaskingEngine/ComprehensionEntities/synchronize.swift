@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 3/28/25.
 //
 
-public class Synchronize: Comprehension.Entity {
+public class Synchronize: Comprehension.ExecutionEntity {
     private let inputStream: String
     private let outputStream: String
     

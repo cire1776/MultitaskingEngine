@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 3/16/25.
 //
 
-public class AddLineEnding: Comprehension.Entity {
+public class AddLineEnding: Comprehension.ExecutionEntity {
     let inputStream: String
     public var executionContext: StreamExecutionContext
     

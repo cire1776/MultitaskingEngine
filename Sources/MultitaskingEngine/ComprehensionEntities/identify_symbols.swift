@@ -7,7 +7,7 @@
 
 import Foundation
 
-final public class IdentifySymbols: Comprehension.Entity {
+final public class IdentifySymbols: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

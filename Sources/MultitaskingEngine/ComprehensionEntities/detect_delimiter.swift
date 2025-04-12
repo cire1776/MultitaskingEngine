@@ -144,7 +144,7 @@ final public class DelimiterCursor {
     }
 }
 
-final public class DetectDelimiter: Comprehension.Entity {
+final public class DetectDelimiter: Comprehension.ExecutionEntity {
     private var executionContext: StreamExecutionContext!
     
     private var inputSubscription: SubscriptionMask = 0x1

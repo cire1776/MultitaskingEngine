@@ -61,7 +61,7 @@ public struct Group: Equatable {
     }
 }
 
-final public class Collect: Comprehension.Entity {
+final public class Collect: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

@@ -7,7 +7,7 @@
 
 import Foundation
 
-final public class EmitCharacter: Comprehension.Entity {
+final public class EmitCharacter: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String

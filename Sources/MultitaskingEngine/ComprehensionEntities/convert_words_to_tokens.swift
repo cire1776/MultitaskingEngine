@@ -5,7 +5,7 @@
 //  Created by Eric Russell on 4/7/25.
 //
 
-final public class ConvertWordsToTokens: Comprehension.Entity {
+final public class ConvertWordsToTokens: Comprehension.ExecutionEntity {
     private let executionContext: StreamExecutionContext
     private let inputStream: String
     private let outputStream: String
