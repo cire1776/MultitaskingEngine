@@ -49,12 +49,19 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
     ]
 
     required public init(executionContext: StreamExecutionContext? = nil) {
-        guard executionContext == nil || executionContext is SubscriptionStreamExecutionContext else {
-            fatalError("Expected a SubscriptionStreamExecutionContext!")
+        let actualContext: SubscriptionStreamExecutionContext
+
+        if let incomingContext = executionContext {
+            guard let casted = incomingContext as? SubscriptionStreamExecutionContext else {
+                fatalError("Expected a SubscriptionStreamExecutionContext!")
+            }
+            actualContext = casted
+        } else {
+            actualContext = SubscriptionStreamExecutionContext()
         }
 
-        self.executionContext = executionContext!
-        self.context = executionContext as! SubscriptionStreamExecutionContext
+        self.executionContext = actualContext
+        self.context = actualContext
 
         self.emitLine = EmitStringWithReturns(executionContext: executionContext!, subscriptions: 0x0, publishes: 0x1)
         self.emitCharacter = EmitCharacter(aliasMap: ["input": "output"], executionContext: executionContext!, subscriptions: 0x1, publishes: 0x1)
