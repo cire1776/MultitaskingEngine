@@ -21,7 +21,9 @@ final class RerouteEntitySpec: AsyncSpec {
         describe("RerouteEntity") {
             context("when initialized") {
                 it("sets input and output stream names correctly") {
-                    reroute = RerouteEntity(aliasMap: ["input": "source", "output": "destination"], executionContext: executionContext)
+                    reroute = RerouteEntity(aliasMap: ["input": "source", "output": "destination"], executionContext: executionContext,
+                                            subscriptions: 0x4,
+                                            publishes: 0x8)
                     reroute.initialize()
 
                     expect(reroute.inputStream).to(equal("source"))
@@ -31,7 +33,9 @@ final class RerouteEntitySpec: AsyncSpec {
 
             context("when processing data") {
                 beforeEach {
-                    reroute = RerouteEntity(aliasMap: ["input": "source", "output": "destination"],executionContext: executionContext)
+                    reroute = RerouteEntity(aliasMap: ["input": "source", "output": "destination"],executionContext: executionContext,
+                                            subscriptions: 0x4,
+                                            publishes: 0x8)
                     reroute.initialize()
                 }
                 

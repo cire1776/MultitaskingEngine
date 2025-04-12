@@ -18,22 +18,32 @@ final class Comprehension_ProcessFile {
 
         readLine = ReadLineFromFile(
             aliasMap: ["input": "filename", "output": "line"],
-            executionContext: executionContext
-        )
+            executionContext: executionContext,
+            subscriptions: 0x0,
+            publishes: 0x0
+)
 
         addTerminator = AddLineEnding(
             aliasMap: ["input": "line"],
-            executionContext: executionContext
+            executionContext: executionContext,
+            subscriptions: 0x0,
+            publishes: 0x0
+
         )
 
         printLine = Print(
             aliasMap: ["input": "line"],
-            executionContext: executionContext
+            executionContext: executionContext,
+            subscriptions: 0x0,
+            publishes: 0x0
         )
 
         storeLine = AddLineToBuffer(
             aliasMap: ["input": "line", "output": "output"],
-            executionContext: executionContext
+            executionContext: executionContext,
+            subscriptions: 0x0,
+            publishes: 0x0
+
         )
     }
 

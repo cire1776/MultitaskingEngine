@@ -19,7 +19,9 @@ func runEntityInPlaceAsGroup<E: IdentifySymbols>(
     executionContext: StreamExecutionContext = SubscriptionStreamExecutionContext()
 ) async -> [Any?] {
 
-    let instance = entity.init(executionContext: executionContext)
+    let instance = entity.init(executionContext: executionContext,
+                               subscriptions: 0x4,
+                               publishes: 0x8)
     var groups = [Any?]()
     
     // Run until exhausted or not available

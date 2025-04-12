@@ -9,14 +9,18 @@ public class Print: Comprehension.Entity {
     let inputStream: String
     // no output
     
-    public var subscriptions: SubscriptionMask = .max
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
+        self.subscriptions = subscriptions
+        self.publishes = publishes
+
     }
     
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         if case let .success(output) = executionContext[inputStream] {
             print(output ?? "~nil~")
             return .proceed

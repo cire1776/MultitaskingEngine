@@ -21,7 +21,9 @@ final class CollectTests: AsyncSpec {
 //                context["output"] = .success([Group]())
                 context.ensure("output", defaultValue: "~nil~")
                 let collect = Collect(
-                    executionContext: context
+                    executionContext: context,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 for char in input {

@@ -14,12 +14,15 @@ final public class ReadFiles: Comprehension.Entity {
     private let executionContext: StreamExecutionContext
     private var enumerator: FileManager.DirectoryEnumerator?
 
-    public var subscriptions: SubscriptionMask = .max
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String]=[:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.filenameStream = aliasMap["filename"] ?? "filename"
         self.pathnameStream = aliasMap["pathname"] ?? "pathname"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
 
     func initialize() {
@@ -27,7 +30,7 @@ final public class ReadFiles: Comprehension.Entity {
         enumerator = FileManager.default.enumerator(atPath: basePath)
     }
 
-    func next() -> EntityResult {
+    public func next() -> EntityResult {
         guard let file = enumerator?.nextObject() as? String else { return .eof }
         
         executionContext[filenameStream] = .success(file)

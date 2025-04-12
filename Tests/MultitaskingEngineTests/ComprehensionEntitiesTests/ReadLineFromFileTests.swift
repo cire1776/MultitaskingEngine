@@ -36,7 +36,9 @@ class ReadLineFromFileTests: AsyncSpec {
                 executionContext["input"] = .success(tempFilePath)
 
                 // Initialize the data source
-                readLineFromFile = ReadLineFromFile(executionContext: executionContext)
+                readLineFromFile = ReadLineFromFile(executionContext: executionContext,
+                                                    subscriptions: 0x4,
+                                                    publishes: 0x8)
             }
 
             afterEach {
@@ -45,7 +47,9 @@ class ReadLineFromFileTests: AsyncSpec {
             }
 
             it("uses default alias if no alias is provided") {
-                readLineFromFile = ReadLineFromFile(executionContext: executionContext)
+                readLineFromFile = ReadLineFromFile(executionContext: executionContext,
+                                                    subscriptions: 0x4,
+                                                    publishes: 0x8)
                 readLineFromFile.initialize()
 
                 expect(readLineFromFile.inputStream).to(equal("input"))
@@ -54,7 +58,9 @@ class ReadLineFromFileTests: AsyncSpec {
 
             it("allows setting custom input/output aliases during initialization") {
                 let aliasMap: [String: String] = ["input": "source_file", "output": "result_line"]
-                readLineFromFile = ReadLineFromFile(aliasMap: aliasMap, executionContext: executionContext)
+                readLineFromFile = ReadLineFromFile(aliasMap: aliasMap, executionContext: executionContext,
+                                                    subscriptions: 0x4,
+                                                    publishes: 0x8)
                 readLineFromFile.initialize()
 
                 expect(readLineFromFile.inputStream).to(equal("source_file"))
@@ -65,7 +71,9 @@ class ReadLineFromFileTests: AsyncSpec {
                 let aliasMap: [String: String] = ["input": "source_file"]
                 executionContext["source_file"] = .success(tempFilePath)
 
-                readLineFromFile = ReadLineFromFile(aliasMap: aliasMap, executionContext: executionContext)
+                readLineFromFile = ReadLineFromFile(aliasMap: aliasMap, executionContext: executionContext,
+                                                    subscriptions: 0x4,
+                                                    publishes: 0x8)
                 readLineFromFile.initialize()
 
                 expect(readLineFromFile.filename).to(endWith("test_file.txt"))
@@ -75,7 +83,9 @@ class ReadLineFromFileTests: AsyncSpec {
                 let aliasMap: [String: String] = ["output": "processed_text"]
                 executionContext["input"] = .success(tempFilePath)
 
-                readLineFromFile = ReadLineFromFile(aliasMap: aliasMap, executionContext: executionContext)
+                readLineFromFile = ReadLineFromFile(aliasMap: aliasMap, executionContext: executionContext,
+                                                    subscriptions: 0x4,
+                                                    publishes: 0x8)
                 readLineFromFile.initialize()
 
                 expect(readLineFromFile.next()).to(equal(.proceed))
@@ -85,7 +95,9 @@ class ReadLineFromFileTests: AsyncSpec {
             it("writes to default output stream if no alias is given") {
                 executionContext["input"] = .success(tempFilePath)
 
-                let readLine = ReadLineFromFile(aliasMap: [:], executionContext: executionContext)
+                let readLine = ReadLineFromFile(aliasMap: [:], executionContext: executionContext,
+                                                subscriptions: 0x4,
+                                                publishes: 0x8)
                 readLine.initialize()
 
                 expect(readLine.next()).to(equal(.proceed))
@@ -112,7 +124,9 @@ class ReadLineFromFileTests: AsyncSpec {
                 FileManager.default.createFile(atPath: tempFilePath, contents: Data(), attributes: nil)
 
                 // Reinitialize the data source
-                readLineFromFile = ReadLineFromFile(executionContext: executionContext)
+                readLineFromFile = ReadLineFromFile(executionContext: executionContext,
+                                                    subscriptions: 0x4,
+                                                    publishes: 0x8)
                 readLineFromFile.initialize()
 
                 expect(readLineFromFile.next()).to(equal(.eof)) // ✅ Should return EOF immediately
@@ -121,7 +135,9 @@ class ReadLineFromFileTests: AsyncSpec {
             it("triggers an exception if filename not given") {
                 let invalidContext = StreamExecutionContext()
 
-                let testEntity = ReadLineFromFile(executionContext: invalidContext)
+                let testEntity = ReadLineFromFile(executionContext: invalidContext,
+                                                  subscriptions: 0x4,
+                                                  publishes: 0x8)
                 testEntity.initialize()
                 
                 guard case let .exception(message)? = invalidContext.pendingEvent else {
@@ -136,7 +152,9 @@ class ReadLineFromFileTests: AsyncSpec {
                 let invalidContext = StreamExecutionContext()
                 invalidContext["input"] = .success("/invalid/path/to/nonexistent.txt")
 
-                let testEntity = ReadLineFromFile(executionContext: invalidContext)
+                let testEntity = ReadLineFromFile(executionContext: invalidContext,
+                                                  subscriptions: 0x4,
+                                                  publishes: 0x8)
                 testEntity.initialize()
 
                 expect(testEntity.next()).to(equal(.unusualExecutionEvent))

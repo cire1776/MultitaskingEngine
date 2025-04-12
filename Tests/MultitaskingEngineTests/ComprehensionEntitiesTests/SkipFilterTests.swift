@@ -19,7 +19,12 @@ final class SkipFilterTests: AsyncSpec {
             beforeEach {
                 executionContext = StreamExecutionContext()
                 executionContext["raw_filename"] = .success("file_to_skip.txt")
-                skipFilter = SkipFilter(valuesToSkip: ["file_to_skip.txt"], stream: "raw_filename", executionContext: executionContext)
+                skipFilter = SkipFilter(valuesToSkip: ["file_to_skip.txt"],
+                                        stream: "raw_filename",
+                                        executionContext: executionContext,
+                                        subscriptions: 0x4,
+                                        publishes: 0x8,
+)
             }
 
             it("should skip files in the exclusion list") {

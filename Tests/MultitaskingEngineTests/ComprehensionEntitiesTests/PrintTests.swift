@@ -21,12 +21,18 @@ final class PrintTests: AsyncSpec {
 
         describe("Initialization") {
             it("uses the default alias 'input'") {
-                printEntity = Print(executionContext: executionContext)
-                expect(printEntity.inputStream).to(equal("input"))
+                printEntity = Print(executionContext: executionContext,
+                                    subscriptions: 0x4,
+                                    publishes: 0x8,)
+                                    expect(printEntity.inputStream).to(equal("input")
+                                )
             }
 
             it("allows custom alias for input stream") {
-                printEntity = Print(aliasMap: ["input": "value"], executionContext: executionContext)
+                printEntity = Print(aliasMap: ["input": "value"], executionContext: executionContext,
+                                    subscriptions: 0x4,
+                                    publishes: 0x8
+                )
                 expect(printEntity.inputStream).to(equal("value"))
             }
         }
@@ -35,7 +41,9 @@ final class PrintTests: AsyncSpec {
             context("when a valid string is present") {
                 beforeEach {
                     executionContext["input"] = .success("Hello, ULang!")
-                    printEntity = Print(executionContext: executionContext)
+                    printEntity = Print(executionContext: executionContext,
+                                        subscriptions: 0x4,
+                                        publishes: 0x8)
                 }
 
                 it("prints the value to stdout") {
@@ -54,7 +62,9 @@ final class PrintTests: AsyncSpec {
             context("when input is nil") {
                 beforeEach {
                     executionContext["input"] = .success(nil)
-                    printEntity = Print(executionContext: executionContext)
+                    printEntity = Print(executionContext: executionContext,
+                                        subscriptions: 0x4,
+                                        publishes: 0x8)
                 }
 
                 it("prints 'nil'") {
@@ -73,7 +83,9 @@ final class PrintTests: AsyncSpec {
             context("when input is an empty string") {
                 beforeEach {
                     executionContext["input"] = .success("")
-                    printEntity = Print(executionContext: executionContext)
+                    printEntity = Print(executionContext: executionContext,
+                                        subscriptions: 0x4,
+                                        publishes: 0x8)
                 }
 
                 it("prints an empty line") {
@@ -92,7 +104,9 @@ final class PrintTests: AsyncSpec {
             context("ensuring input is not mutated") {
                 beforeEach {
                     executionContext["input"] = .success("Preserve Me")
-                    printEntity = Print(executionContext: executionContext)
+                    printEntity = Print(executionContext: executionContext,
+                                        subscriptions: 0x4,
+                                        publishes: 0x8)
                 }
 
                 it("does not modify the input stream") {

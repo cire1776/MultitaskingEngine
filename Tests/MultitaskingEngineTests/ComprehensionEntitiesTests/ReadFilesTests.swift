@@ -30,7 +30,9 @@ final class ReadFilesTests: AsyncSpec {
                 executionContext = StreamExecutionContext()
                 readFiles = ReadFiles(
                     aliasMap: ["filename": "filename", "pathname": "pathname"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 // ✅ Setup test files
@@ -96,7 +98,9 @@ final class ReadFilesTests: AsyncSpec {
             it("uses custom filename alias") {
                 readFiles = ReadFiles(
                     aliasMap: ["filename": "custom_filename"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readFiles.initialize()
@@ -109,7 +113,9 @@ final class ReadFilesTests: AsyncSpec {
             it("uses custom pathname alias") {
                 readFiles = ReadFiles(
                     aliasMap: ["pathname": "custom_path"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readFiles.initialize()
@@ -122,7 +128,9 @@ final class ReadFilesTests: AsyncSpec {
             it("uses both custom aliases if provided") {
                 readFiles = ReadFiles(
                     aliasMap: ["filename": "fn", "pathname": "pn"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readFiles.initialize()
@@ -135,7 +143,9 @@ final class ReadFilesTests: AsyncSpec {
             it("defaults to 'filename' and 'pathname' if no aliases are provided") {
                 readFiles = ReadFiles(
                     aliasMap: [:],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readFiles.initialize()
@@ -157,7 +167,9 @@ final class ReadFilesTests: AsyncSpec {
                 
                 readFiles = ReadFiles(
                     aliasMap: ["filename": "filename"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readFiles.initialize()

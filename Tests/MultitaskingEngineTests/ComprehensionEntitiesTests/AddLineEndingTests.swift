@@ -18,12 +18,16 @@ final class AddLineEndingTests: AsyncSpec {
         
         beforeEach {
             executionContext = StreamExecutionContext()
-            addLineEnding = AddLineEnding(aliasMap: ["input": "text"], executionContext: executionContext)
+            addLineEnding = AddLineEnding(aliasMap: ["input": "text"], executionContext: executionContext,
+                                          subscriptions: 0x4,
+                                          publishes: 0x8)
         }
         
         describe("Initialization") {
             it("allows setting a custom input alias") {
-                let addLineEnding = AddLineEnding(aliasMap: ["input": "text"], executionContext: executionContext)
+                let addLineEnding = AddLineEnding(aliasMap: ["input": "text"], executionContext: executionContext,
+                                                  subscriptions: 0x4,
+                                                  publishes: 0x8)
                 expect(addLineEnding.inputStream).to(equal("text"))
             }
         }

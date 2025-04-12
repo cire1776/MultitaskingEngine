@@ -10,19 +10,22 @@ public class AddLineToBuffer: Comprehension.Entity {
     let inputStream: String
     let outputStream: String
     
-    public var subscriptions: SubscriptionMask = .max
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
     
     func initialize() {
         executionContext.ensure(outputStream,defaultValue: [])
     }
 
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         guard let line = try? executionContext[inputStream].get() as? String else {
             executionContext.triggerUnusualEvent(.warning("Nil input received."))
             return .notAvailable

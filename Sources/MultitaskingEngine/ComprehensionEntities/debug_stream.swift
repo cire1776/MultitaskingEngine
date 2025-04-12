@@ -10,13 +10,16 @@ final public class DebugStream: Comprehension.Entity {
     // no input
     // no output
     
-    public var subscriptions: SubscriptionMask = .max
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
     
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         print(executionContext.dumpStreams())
         return .proceed
     }

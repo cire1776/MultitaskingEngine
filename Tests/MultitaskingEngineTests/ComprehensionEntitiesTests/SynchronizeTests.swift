@@ -30,6 +30,8 @@ final class SynchronizeTests: AsyncSpec {
                               "output": "contents"],
                     source: sourceContext,
                     destination: destinationContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(sync.process()).to(equal(.proceed))
@@ -45,7 +47,9 @@ final class SynchronizeTests: AsyncSpec {
                     aliasMap: ["input": "output",
                     "output": "merged"],
                     source: sourceContext,
-                    destination: destinationContext
+                    destination: destinationContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(sync.process()).to(equal(.proceed))
@@ -62,7 +66,9 @@ final class SynchronizeTests: AsyncSpec {
                     aliasMap: ["input": "output",
                                "output": "contents"],
                     source: sourceContext,
-                    destination: destinationContext
+                    destination: destinationContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(sync.process()).to(equal(.proceed))
@@ -76,7 +82,9 @@ final class SynchronizeTests: AsyncSpec {
                     aliasMap: ["input": "missingInput",
                                "output": "contents"],
                     source: sourceContext,
-                    destination: destinationContext
+                    destination: destinationContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(sync.process()).to(equal(.notAvailable))
@@ -91,7 +99,9 @@ final class SynchronizeTests: AsyncSpec {
                         "output": "contents"
                     ],
                     source: sourceContext,
-                    destination: destinationContext
+                    destination: destinationContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(sync.process()).to(equal(.notAvailable))
@@ -105,7 +115,9 @@ final class SynchronizeTests: AsyncSpec {
                     aliasMap: ["input": "data",
                                "output": "contents"],
                     source: sourceContext,
-                    destination: destinationContext
+                    destination: destinationContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(sync.process()).to(equal(.notAvailable))

@@ -45,13 +45,11 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         self.context = self.executionContext as! SubscriptionStreamExecutionContext
         self.executionContext.subscriptions = Subscriptions(sources: 0x07)
         
-        self.emitString = EmitString(
-            executionContext: executionContext
-        )
+        self.emitString = EmitString(executionContext: executionContext,subscriptions: 0x0, publishes: 0x1)
         
-        self.split = SplitLinesIntoWords(aliasMap: ["input": "output", "output": "words"],executionContext: executionContext)
-        self.join = JoinWordsWithComma(aliasMap: ["input": "words", "output": "comma_delimited_line"], executionContext: executionContext)
-        self.printer = Print(aliasMap: ["input": "comma_delimited_line"], executionContext: executionContext)
+        self.split = SplitLinesIntoWords(aliasMap: ["input": "output", "output": "words"],executionContext: executionContext,subscriptions: 0x1, publishes: 0x2)
+        self.join = JoinWordsWithComma(aliasMap: ["input": "words", "output": "comma_delimited_line"], executionContext: executionContext,subscriptions: 0x4, publishes: 0x4)
+        self.printer = Print(aliasMap: ["input": "comma_delimited_line"], executionContext: executionContext,subscriptions: 0x4, publishes: 0x0)
         
         self.table = LintTable.Sequential(lints:[])
         
@@ -91,7 +89,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- Split block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = split.process(publishes: outputStreams); return .running },
+            { [self] _ in result = split.process(); return .running },
             { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) }
         ])
     }
@@ -105,7 +103,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         return LintTable.Sequential(lints: [
             { [self] _ in print("----- join block\(executionContext.executionMode.rawValue) -----"); return .running },
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? join.process(publishes: outputStreams) : join.process(publishes: outputStreams); return .running },
+            { [self] _ in result = executionContext.isDraining ? join.drain() : join.process(); return .running },
             { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
         ])
     }

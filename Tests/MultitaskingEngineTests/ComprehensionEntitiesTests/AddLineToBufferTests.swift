@@ -16,12 +16,16 @@ final class AddLineToBufferTests: AsyncSpec {
         
         beforeEach {
             executionContext = StreamExecutionContext()
-            addLineToBuffer = AddLineToBuffer(executionContext: executionContext)
+            addLineToBuffer = AddLineToBuffer(executionContext: executionContext,
+                                              subscriptions: 0x4,
+                                              publishes: 0x8)
         }
         
         describe("Initialization") {
             it("uses default aliases for input and output") {
-                addLineToBuffer = AddLineToBuffer(executionContext: executionContext)
+                addLineToBuffer = AddLineToBuffer(executionContext: executionContext,
+                                                  subscriptions: 0x4,
+                                                  publishes: 0x8)
                 
                 expect(addLineToBuffer.inputStream).to(equal("input"))   // ✅ Default alias
                 expect(addLineToBuffer.outputStream).to(equal("output")) // ✅ Default alias
@@ -29,7 +33,9 @@ final class AddLineToBufferTests: AsyncSpec {
             
             it("allows setting custom input and output aliases") {
                 let customAliases = ["input": "line", "output": "buffer"]
-                addLineToBuffer = AddLineToBuffer(aliasMap: customAliases, executionContext: executionContext)
+                addLineToBuffer = AddLineToBuffer(aliasMap: customAliases, executionContext: executionContext,
+                                                  subscriptions: 0x4,
+                                                  publishes: 0x8)
                 
                 expect(addLineToBuffer.inputStream).to(equal("line"))   // ✅ Custom input alias
                 expect(addLineToBuffer.outputStream).to(equal("buffer")) // ✅ Custom output alias
@@ -38,7 +44,9 @@ final class AddLineToBufferTests: AsyncSpec {
         
         describe("Processing") {
             beforeEach {
-                addLineToBuffer = AddLineToBuffer(executionContext: executionContext)
+                addLineToBuffer = AddLineToBuffer(executionContext: executionContext,
+                                                  subscriptions: 0x4,
+                                                  publishes: 0x8)
                 addLineToBuffer.initialize()
             }
             

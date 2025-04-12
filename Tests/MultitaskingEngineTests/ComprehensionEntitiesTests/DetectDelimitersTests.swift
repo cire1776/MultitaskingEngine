@@ -21,7 +21,9 @@ final class DetectDelimiterTests: AsyncSpec {
             func runDetectDelimiter(input: [Group]) async -> [Group] {
                 let context = SubscriptionStreamExecutionContext()
 
-                let detector = DetectDelimiter(executionContext: context)
+                let detector = DetectDelimiter(executionContext: context,
+                                               subscriptions: 0x4,
+                                               publishes: 0x8)
                 var groups: [Group] = []
 
                 loop: for nextInput in input {

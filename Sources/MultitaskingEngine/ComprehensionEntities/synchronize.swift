@@ -12,21 +12,28 @@ public class Synchronize: Comprehension.Entity {
     private var sourceContext: StreamExecutionContext
     private var destinationContext: StreamExecutionContext
     
-    public var subscriptions: SubscriptionMask = .max
-
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
+    
     public init(
         aliasMap: [String: String] = [:],
         source: StreamExecutionContext,
         destination: StreamExecutionContext,
-    ) {
+        subscriptions: SubscriptionMask,
+        publishes: SubscriptionMask
+    )
+    {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         
         self.sourceContext = source
         self.destinationContext = destination
+        
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
     
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         guard let value = try? sourceContext[inputStream].get() as? [String] else {
             return .notAvailable
         }

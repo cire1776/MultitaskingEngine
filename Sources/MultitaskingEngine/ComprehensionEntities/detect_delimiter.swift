@@ -151,7 +151,8 @@ final public class DetectDelimiter: Comprehension.Entity {
     private let stream: String
     // ouputs to input stream
     
-    public var subscriptions: SubscriptionMask = 0x1
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
     private var cursor = DelimiterCursor()
     private var bufferIndex = "".startIndex
@@ -162,12 +163,14 @@ final public class DetectDelimiter: Comprehension.Entity {
         "(", ")", "{", "}", "[", "]"   // scoping delimiters
     ]
     
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.stream = aliasMap["input"] ?? "input"
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
     
-    func process() -> EntityResult {
+   public func process() -> EntityResult {
         print("---- DetectDelimiter ----")
         guard let rawInput = try? executionContext[stream].get(),
               let input = rawInput as? Group,
@@ -220,7 +223,7 @@ final public class DetectDelimiter: Comprehension.Entity {
         executionContext[stream] = .success(Group(kind: .symbol, value: cursor.current))
         cursor.reset()
         
-        return bufferedInput == nil ? .proceed : .pump(0x01)
+        return bufferedInput == nil ? .proceed : .pump(self.publishes)
      }
 }
 

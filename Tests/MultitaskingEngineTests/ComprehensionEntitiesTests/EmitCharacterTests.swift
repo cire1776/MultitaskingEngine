@@ -13,12 +13,14 @@ import Nimble
 final class EmitCharacterSpec: AsyncSpec {
     override class func spec() {
         describe("EmitCharacter") {
-            func createEmitter(with input: String, output: String = "output") -> (context: SubscriptionStreamExecutionContext, emitter: EmitCharacter) {
+            func createEmitter(with input: String, output: String = "output",publishes: SubscriptionMask) -> (context: SubscriptionStreamExecutionContext, emitter: EmitCharacter) {
                 let context = SubscriptionStreamExecutionContext()
                 context["input"] = .success(input)
                 context.ensure(output, defaultValue: "~nil~")
 
-                let emitter = EmitCharacter(executionContext: context)
+                let emitter = EmitCharacter(executionContext: context,
+                                            subscriptions: 0x4,
+                                            publishes: publishes)
                 emitter.initialize()
 
                 return (context, emitter)
@@ -56,55 +58,40 @@ final class EmitCharacterSpec: AsyncSpec {
             }
 
             it("emits all characters from a simple string") {
-                let (context, emitter) = createEmitter(with: "abc")
+                let (context, emitter) = createEmitter(with: "abc",publishes: 0x1)
                 let output = emitAllCharacters(from: emitter, into: context)
                 expect(output).to(equal(["a", "b", "c"]))
             }
 
             it("emits nothing for empty string") {
-                let (context, emitter) = createEmitter(with: "")
+                let (context, emitter) = createEmitter(with: "",publishes: 0x1)
                 let output = emitAllCharacters(from: emitter, into: context)
                 expect(output).to(beEmpty())
             }
 
             it("handles newline characters correctly") {
-                let (context, emitter) = createEmitter(with: "a\nb\nc")
+                let (context, emitter) = createEmitter(with: "a\nb\nc",publishes: 0x1)
                 let output = emitAllCharacters(from: emitter, into: context)
                 expect(output).to(equal(["a", "\n", "b", "\n", "c"]))
             }
 
             it("supports unicode characters") {
-                let (context, emitter) = createEmitter(with: "héllö")
+                let (context, emitter) = createEmitter(with: "héllö",publishes: 0x1)
                 let output = emitAllCharacters(from: emitter, into: context)
                 expect(output).to(equal(["h", "é", "l", "l", "ö"]))
             }
 
-            xit("returns .notAvailable after finishing the buffer") {
-                let (_, emitter) = createEmitter(with: "x")
-                _ = emitter.process()  // "x"
+            it("returns .pump when characters remain") {
+                let (_, emitter) = createEmitter(with: "xy",publishes: 0x1776)
                 
                 let result = emitter.process()
-                expect(result).to(equal(.notAvailable))
-            }
-
-            it("returns .pump when characters remain") {
-                let (_, emitter) = createEmitter(with: "xy")
-                let result = emitter.process(publishes: 0x1776)
                 expect(result).to(equal(.pump(0x1776)))
             }
 
             it("returns .proceed on final character") {
-                let (_, emitter) = createEmitter(with: "z")
+                let (_, emitter) = createEmitter(with: "z",publishes: 0x1)
                 let result = emitter.process()
                 expect(result).to(equal(.proceed))
-            }
-
-            xit("clears state on finalize") {
-                let (_, emitter) = createEmitter(with: "123")
-                _ = emitter.process()
-                emitter.finalize()
-                let result = emitter.process()
-                expect(result).to(equal(.eof))
             }
         }
     }

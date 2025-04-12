@@ -38,7 +38,9 @@ final class ProcessFileIntegrationTests: AsyncSpec {
                 executionContext["filename"] = .success(testPath)
                 let readLine = ReadLineFromFile(
                     aliasMap: ["output": "line", "input": "filename"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readLine.initialize()
@@ -52,7 +54,9 @@ final class ProcessFileIntegrationTests: AsyncSpec {
 
                 let printLine = Print(
                     aliasMap: ["input": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 let output = captureStdOut {
@@ -68,7 +72,9 @@ final class ProcessFileIntegrationTests: AsyncSpec {
 
                 let addLineEnding = AddLineEnding(
                     aliasMap: ["input": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 expect(addLineEnding.process()).to(equal(.proceed))
@@ -80,7 +86,9 @@ final class ProcessFileIntegrationTests: AsyncSpec {
 
                 let addLineToBuffer = AddLineToBuffer(
                     aliasMap: ["input": "terminated"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 addLineToBuffer.initialize()
@@ -111,22 +119,30 @@ final class ProcessFileIntegrationTests: AsyncSpec {
 
                 let readLine = ReadLineFromFile(
                     aliasMap: ["input": "filename", "output": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 let printLine = Print(
                     aliasMap: ["input": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 let addLineEnding = AddLineEnding(
                     aliasMap: ["input": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 let addLineToBuffer = AddLineToBuffer(
                     aliasMap: ["input": "line", "output": "output"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 // ✅ Initialize all entities that need it
@@ -188,17 +204,23 @@ final class ProcessFileIntegrationTests: AsyncSpec {
 
                 let readLine = ReadLineFromFile(
                     aliasMap: ["input": "filename", "output": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 let addLineEnding = AddLineEnding(
                     aliasMap: ["input": "line"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 let addLineToBuffer = AddLineToBuffer(
                     aliasMap: ["input": "line", "output": "output"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
 
                 readLine.initialize()

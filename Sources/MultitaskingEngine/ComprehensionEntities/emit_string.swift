@@ -12,12 +12,16 @@ final public class EmitString: Comprehension.Entity {
     private var lines: [String] = []
     private var currentIndex: Int
 
-    public let subscriptions: SubscriptionMask = 0
-
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
+    
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
+        self.subscriptions = subscriptions
+        self.publishes = publishes
+
                 
         currentIndex = 0
     }
@@ -33,7 +37,7 @@ final public class EmitString: Comprehension.Entity {
         }
     }
 
-    func next() -> EntityResult {
+    public func next() -> EntityResult {
         print("====== emit string =======")
         guard currentIndex < lines.count else {
             print("---- eof ----")

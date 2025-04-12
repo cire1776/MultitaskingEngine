@@ -15,12 +15,16 @@ final public class EmitCharacter: Comprehension.Entity {
     private var buffer: String = ""
     private var index: String.Index = "".startIndex
 
-    public let subscriptions: SubscriptionMask = 0  // pumping-only
+    public let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
 
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
+        self.subscriptions = subscriptions
+        self.publishes = publishes
+
     }
 
     func initialize() {
@@ -28,7 +32,7 @@ final public class EmitCharacter: Comprehension.Entity {
         index = buffer.startIndex
     }
 
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         print("----emit character----")
         // Only refill if we've exhausted the buffer
         if index >= buffer.endIndex {
@@ -51,7 +55,7 @@ final public class EmitCharacter: Comprehension.Entity {
 
         executionContext[outputStream] = .success(character)
         print("emitted: \(character)")
-        return index < buffer.endIndex ? .pump(publishes) : .proceed
+        return index < buffer.endIndex ? .pump(self.publishes) : .proceed
     }
 
     func finalize() {

@@ -12,19 +12,22 @@ final public class SplitLinesIntoWords: Comprehension.Entity {
 
     private var wordBuffer: [String] = []
 
-    public let subscriptions: SubscriptionMask = 0x1
+    public let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
 
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
 
     func initialize() {
         wordBuffer.removeAll()
     }
 
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         print("======= SplitLinesIntoWords =======")
 
         if wordBuffer.isEmpty {
@@ -42,7 +45,7 @@ final public class SplitLinesIntoWords: Comprehension.Entity {
         let word = wordBuffer.removeFirst()
         print("emit: \(word): \(wordBuffer.isEmpty ? "proceed" : "pump")")
         executionContext[outputStream] = .success(word)
-        return wordBuffer.isEmpty ? .proceed : .pump(publishes)
+       return wordBuffer.isEmpty ? .proceed : .pump(self.publishes)
     }
     
     func finalize() {

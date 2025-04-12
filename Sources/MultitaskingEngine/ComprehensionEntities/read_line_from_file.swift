@@ -20,13 +20,16 @@ final public class ReadLineFromFile: Comprehension.Entity {
     private var hasInitialized = false
     private var buffer = Data()
 
-    public var subscriptions: SubscriptionMask = .max
-
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
+    
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
 
     func initialize() {
@@ -39,7 +42,7 @@ final public class ReadLineFromFile: Comprehension.Entity {
         self.filename = filename
     }
     
-    func next() -> EntityResult {
+    public func next() -> EntityResult {
         // ✅ Lazy initialization of fileHandle (first call to `next()`)
         if !hasInitialized {
             hasInitialized = true

@@ -10,15 +10,18 @@ public struct SkipFilter: Comprehension.Entity {
     private let stream: String
     private let executionContext: StreamExecutionContext
 
-    public var subscriptions: SubscriptionMask = .max
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(valuesToSkip: [String], stream: String, executionContext: StreamExecutionContext) {
+    public init(valuesToSkip: [String], stream: String, executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.valuesToSkip = Set(valuesToSkip)
         self.stream = stream
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
 
-    func include() -> EntityResult {
+    public func include() -> EntityResult {
         if !executionContext.containsKey(stream) { return .eof }
 
         let rawValue = try? executionContext[stream].get() as? String // ✅ Allows `nil`

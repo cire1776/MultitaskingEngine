@@ -50,13 +50,18 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
         self.operationID = Int("1A5D27B3", radix: 16)!
         readFiles = ReadFiles(
             aliasMap: ["output": "filename"],
-            executionContext: self.executionContext
+            executionContext: self.executionContext,
+            subscriptions: 0x0,
+            publishes: 0x0
         )
         
         skipOutput = SkipFilter(
             valuesToSkip: ["output.txt"],
             stream: "filename",
-            executionContext: self.executionContext
+            executionContext: self.executionContext,
+            subscriptions: 0x0,
+            publishes: 0x0
+
         )
 
         self.table = LintTable.Sequential(lints:[])
@@ -159,6 +164,9 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider,  @unch
                     ],
                     source: fileContext,
                     destination: executionContext,
+                    subscriptions: 0x0,
+                    publishes: 0x0
+
                 )
                 
                 switch sync.process() {

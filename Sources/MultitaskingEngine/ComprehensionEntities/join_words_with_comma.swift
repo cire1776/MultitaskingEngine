@@ -10,17 +10,20 @@ final public class JoinWordsWithComma: Comprehension.Entity {
     private let inputStream: String
     private let outputStream: String
 
-    public var subscriptions: SubscriptionMask = 0
-
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
+    
     private var buffer: [String] = []
 
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
 
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         guard case let .success(word as String) = executionContext[inputStream] else {
             return .notAvailable
         }
@@ -29,6 +32,10 @@ final public class JoinWordsWithComma: Comprehension.Entity {
         return .proceed  // or .pump if needed
     }
 
+    public func drain() -> EntityResult {
+        return .notAvailable
+    }
+    
     func finalize() {
         let line = buffer.joined(separator: ",")
         executionContext[outputStream] = .success(line)

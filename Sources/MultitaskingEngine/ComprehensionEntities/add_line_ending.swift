@@ -9,14 +9,17 @@ public class AddLineEnding: Comprehension.Entity {
     let inputStream: String
     public var executionContext: StreamExecutionContext
     
-    public init(aliasMap: [String: String], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.executionContext = executionContext
         self.inputStream = aliasMap["input"] ?? "input"
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
    
-    public var subscriptions: SubscriptionMask = .max
-
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
+    
+    public func process() -> EntityResult {
         guard let line = try? executionContext[inputStream].get() as? String else {
             return .notAvailable
         }

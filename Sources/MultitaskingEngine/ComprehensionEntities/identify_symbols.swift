@@ -12,15 +12,19 @@ final public class IdentifySymbols: Comprehension.Entity {
     private let inputStream: String
     private let outputStream: String
     
-    public let subscriptions: SubscriptionMask = 0
+    public let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
+
     }
     
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         print("---- Identifying Symbols ----")
         guard case .success(let nextChar as Character) = executionContext[inputStream],
               Group.classify(nextChar) == Group.Kind.symbol else {

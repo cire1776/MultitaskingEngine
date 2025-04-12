@@ -12,17 +12,21 @@ final public class BuildAST: Comprehension.Entity {
 
     private var buffer: [Group] = []
 
-    public let subscriptions: SubscriptionMask = 0
+    public let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
 
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
+
     }
 
     func initialize() {}
 
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         guard case let .success(token as Group) = executionContext[inputStream] else {
             return .notAvailable
         }
@@ -31,8 +35,8 @@ final public class BuildAST: Comprehension.Entity {
         return .proceed
     }
 
-    func drain(publishes: SubscriptionMask=0) -> EntityResult {
-        return process(publishes: publishes)
+    func drain() -> EntityResult {
+        return process()
     }
     
     func finalize() {

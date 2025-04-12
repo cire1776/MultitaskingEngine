@@ -56,14 +56,13 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         self.executionContext = executionContext!
         self.context = executionContext as! SubscriptionStreamExecutionContext
         
-        self.emitLine = EmitStringWithReturns(executionContext: executionContext!)
-        self.emitCharacter = EmitCharacter(aliasMap: ["input": "output"], executionContext: executionContext!)
-        self.identifySymbol = IdentifySymbols(aliasMap: ["input": "output"], executionContext: executionContext!)
-        self.collect = Collect(aliasMap: ["input": "output", "output": "group"], executionContext: executionContext!)
-       self.build = BuildAST(aliasMap: ["input": "group", "output": "ast"], executionContext: executionContext!)
-        self.debugStream = DebugStream(executionContext: executionContext!)
+        self.emitLine = EmitStringWithReturns(executionContext: executionContext!,subscriptions: 0x0, publishes: 0x1)
+        self.emitCharacter = EmitCharacter(aliasMap: ["input": "output"], executionContext: executionContext!,subscriptions: 0x1, publishes: 0x1)
+        self.identifySymbol = IdentifySymbols(aliasMap: ["input": "output"], executionContext: executionContext!,subscriptions: 0x1, publishes: 0x1)
+        self.collect = Collect(aliasMap: ["input": "output", "output": "group"], executionContext: executionContext!,subscriptions: 0x1, publishes: 0x2)
+        self.build = BuildAST(aliasMap: ["input": "group", "output": "ast"], executionContext: executionContext!,subscriptions: 0x1, publishes: 0x2)
+        self.debugStream = DebugStream(executionContext: executionContext!,subscriptions: 0x2, publishes: 0x4)
 
-        
         self .table = LintTable.Sequential(lints: [], identifier: 0)
         
         self.table = LintTable.Sequential(lints: [
@@ -96,7 +95,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = emitCharacter.process(publishes: outputStreams); return .running },
+            { [self] _ in result = emitCharacter.process(); return .running },
             { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) }
         ])
     }
@@ -109,7 +108,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = identifySymbol.process(publishes: outputStreams); return .running },
+            { [self] _ in result = identifySymbol.process(); return .running },
             { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
         ])
     }
@@ -122,7 +121,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? collect.drain(publishes: outputStreams) : collect.process(publishes: outputStreams); return .running },
+            { [self] _ in result = executionContext.isDraining ? collect.drain(publishes: outputStreams) : collect.process(); return .running },
             { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) }
         ])
     }
@@ -136,7 +135,7 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         return LintTable.Sequential(lints: [
             { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? build.drain(publishes: outputStreams) : build.process(publishes: outputStreams); return .running },
+            { [self] _ in result = executionContext.isDraining ? build.drain() : build.process(); return .running },
             { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
         ])
     }

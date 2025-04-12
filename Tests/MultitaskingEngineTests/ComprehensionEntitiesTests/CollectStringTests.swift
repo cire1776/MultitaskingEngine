@@ -17,8 +17,10 @@ final class CollectStringsTests: AsyncSpec {
                 await runCollectEntity(
                     input: input,
                     outputStream: "output",
-                    using: { CollectStrings(executionContext: $0) },
-                    execute: { $0.process(publishes: 0x1) },
+                    using: { CollectStrings(executionContext: $0,
+                                            subscriptions: 0x4,
+                                            publishes: 0x8) },
+                    execute: { $0.process() },
                     drain: { $0.drain() }
                 )
             }

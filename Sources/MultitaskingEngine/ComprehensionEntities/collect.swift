@@ -70,17 +70,20 @@ final public class Collect: Comprehension.Entity {
     private var bufferKind: Group.Kind? = nil
     private var bufferedGroup: Group?
     
-    public let subscriptions: SubscriptionMask = 0
+    public let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
     
     func initialize() {}
     
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         print("----- collect -----\n")
         print("collect buffer:\n\(buffer)\n")
         print("collecting: \(String(describing: try? executionContext[inputStream].get()!))")

@@ -29,7 +29,9 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 try? "skip me".write(toFile: "\(dir)/output.txt", atomically: true, encoding: .utf8)
                 
                 // ✅ Execution
-                let readFiles = ReadFiles(aliasMap: ["output": "filename"], executionContext: executionContext)
+                let readFiles = ReadFiles(aliasMap: ["output": "filename"], executionContext: executionContext,
+                                          subscriptions: 0x4,
+                                          publishes: 0x8)
                 
                 executionContext["baseDir"] = .success(dir)
                 
@@ -46,7 +48,9 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 let skip = SkipFilter(
                     valuesToSkip: ["output.txt"],
                     stream: "filename",
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
                 
                 for name in filenames {
@@ -80,7 +84,9 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 
                 let reroute = RerouteEntity(
                     aliasMap: ["input": "output", "output": "contents"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
                 
                 let result = reroute.process()
@@ -93,7 +99,9 @@ final class ModelHensionIntegrationTests: AsyncSpec {
             it("step 5: prints ensure block confirmation") {
                 let ensureBlock = Print(
                     aliasMap: ["input": "message"],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
                 
                 executionContext["message"] = .success("Concatenation complete! Output saved in: output.txt")
@@ -129,19 +137,24 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                         "output": "filename",
                         "pathname": "pathname"
                     ],
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
                 
                 let skipping = SkipFilter(
                     valuesToSkip: ["output.txt"],
                     stream: "filename",
-                    executionContext: executionContext
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8
                 )
                 
                 let reroute = RerouteEntity(
                     aliasMap: ["input": "output", "output": "contents"],
-                    executionContext: executionContext
-                )
+                    executionContext: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8                )
                 
                 // ✅ Init only those that require it
                 readFiles.initialize()
@@ -171,6 +184,8 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                                 ],
                                 source: fileContext,
                                 destination: executionContext,
+                                subscriptions: 0x4,
+                                publishes: 0x8
                             )
                             
                             expect(sync.process()).to(equal(.proceed))

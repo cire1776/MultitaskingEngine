@@ -13,13 +13,16 @@ final public class RerouteEntity: Comprehension.Entity {
     let outputStream: String
     var executionContext: StreamExecutionContext
 
-    public var subscriptions: SubscriptionMask = .max
+    public var subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
     
-    public init(aliasMap: [String: String], executionContext: StreamExecutionContext) {
+    public init(aliasMap: [String: String], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.aliasMap = aliasMap
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
     
     func initialize() {
@@ -29,7 +32,7 @@ final public class RerouteEntity: Comprehension.Entity {
         }
     }
     
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         if case let .success(value) = executionContext[inputStream] {
             executionContext[outputStream] = .success(value)
             executionContext.remove(inputStream)

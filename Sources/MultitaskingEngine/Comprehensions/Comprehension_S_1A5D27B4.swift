@@ -62,13 +62,17 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
         operationID = Int("1A5D27B4", radix: 16)!
         
         readFiles = ReadFiles(
-            executionContext: self.executionContext
+            executionContext: self.executionContext,
+            subscriptions: 0x0,
+            publishes: 0x3,
         )
         
         skipOutput = SkipFilter(
             valuesToSkip: ["output.txt"],
             stream: "filename",
-            executionContext: self.executionContext
+            executionContext: self.executionContext,
+            subscriptions: 0x1,
+            publishes: 0x3,
         )
 
         self.table = LintTable.Sequential(lints:[])
@@ -158,9 +162,12 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
                     ],
                     source: fileContext,
                     destination: executionContext,
+                    subscriptions: 0x4,
+                    publishes: 0x8,
                 )
                 
-                result = sync.process(publishes: outputStreams)
+                result = sync.process()
+            
                 return .running
             },
             { [self] _ in dispatch(on: result, using: inputSubscriptions, emitting: outputStreams) },

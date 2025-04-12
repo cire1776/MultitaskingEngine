@@ -147,6 +147,7 @@ public enum Comprehension {
     
     public protocol Entity {
         var subscriptions: SubscriptionMask { get }
+        var publishes: SubscriptionMask { get }
     }
 }
 

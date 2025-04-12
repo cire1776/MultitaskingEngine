@@ -14,19 +14,22 @@ final class CollectStrings: Comprehension.Entity {
     private let outputStream: String
     private var buffer: [String] = []
 
-    let subscriptions: SubscriptionMask = 0
+    let subscriptions: SubscriptionMask
+    public var publishes: SubscriptionMask
 
-    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext) {
+    init(aliasMap: [String: String] = [:], executionContext: StreamExecutionContext, subscriptions: SubscriptionMask, publishes: SubscriptionMask) {
         self.inputStream = aliasMap["input"] ?? "input"
         self.outputStream = aliasMap["output"] ?? "output"
         self.executionContext = executionContext
+        self.subscriptions = subscriptions
+        self.publishes = publishes
     }
 
     func initialize() {
         buffer = []
     }
 
-    func process(publishes: SubscriptionMask=0) -> EntityResult {
+   public func process() -> EntityResult {
         print("===== CollectStrings =====")
         guard let value = try? executionContext[inputStream].get() else {
             return .notAvailable
