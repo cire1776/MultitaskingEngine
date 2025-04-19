@@ -17,6 +17,12 @@ enum VariableStorage {
     case index(Int)
 }
 
+public enum VariableType: Equatable {
+    case standard
+    case ephemeral
+    case indexed
+}
+
 public protocol HeapExecutionContext: AnyObject {
     var operation: Operation? { get }
 
@@ -116,6 +122,16 @@ public enum ExecutionMode: String {
     case draining = "🚰"
     case drainPump = "🔂"
 }
+ 
+public struct VariableSummary {
+    public let value: Any?
+    public let type: VariableType
+    
+    public init(value: Any?, type: VariableType) {
+        self.value = value
+        self.type = type
+    }
+}
 
 public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchecked Sendable {
     public var operation: Operation?
@@ -133,6 +149,27 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
 
     public var isDraining: Bool { executionMode == .draining }
 
+    public init() {  }
+        
+    public func getAllVariables(at tick: Int) -> [String: VariableSummary] {
+        var result = [String: VariableSummary]()
+        
+        self.dynamicVariables.forEach {
+            switch $0.value {
+            case .value(let storedValue):
+                result[$0.key] = VariableSummary(value: storedValue, type: .standard)
+            case let .ephemeral(storedValue, tick: storedTick) where tick == storedTick:
+                result[$0.key] = VariableSummary(value: storedValue, type: .ephemeral)
+            case let .index(index):
+                result[$0.key] = VariableSummary(value: index, type: .indexed)
+            default:
+                break
+            }
+        }
+        
+        return result
+    }
+    
     public subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {
             dynamicLock.lock()
