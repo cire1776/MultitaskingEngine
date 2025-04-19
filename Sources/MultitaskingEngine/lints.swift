@@ -144,7 +144,7 @@ public protocol LintProvider: AnyObject {
     var operationName: String { get }
 }
 
-public protocol LintRunner: AnyObject {
+public protocol LintRunner: AnyObject, Sendable {
     var table: LintTable.Steppable { get set }
     var lintCounter: Int { get set }
 
@@ -194,7 +194,7 @@ extension LintRunner {
 
 public protocol RunnableLintProvider: LintProvider {  }
 
-public class ManualLintRunner: LintRunner {
+final public class ManualLintRunner: LintRunner, @unchecked Sendable {
     public var table: LintTable.Steppable
     public var lintCounter: Int = 0
 
