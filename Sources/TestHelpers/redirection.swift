@@ -30,6 +30,22 @@ public func captureStdOut(_ execute: () -> Void) -> String {
     return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 }
 
+public func captureStdOut(_ execute: () async -> Void) async -> String {
+    let pipe = Pipe()
+    let originalStdOut = dup(fileno(stdout))  // ✅ Save original stdout
+
+    dup2(pipe.fileHandleForWriting.fileDescriptor, fileno(stdout))  // ✅ Redirect stdout
+    await execute()  // ✅ Run the function
+
+    fflush(stdout)  // ✅ Flush stdout
+    pipe.fileHandleForWriting.closeFile()  // ✅ Close the write end to signal EOF
+    dup2(originalStdOut, fileno(stdout))  // ✅ Restore stdout
+    close(originalStdOut)  // ✅ Close duplicate descriptor
+
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()  // ✅ Now safely reads all data
+    return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+}
+
 // Struct to hold redirection state
 struct StdoutRedirector {
     let pipe: Pipe
