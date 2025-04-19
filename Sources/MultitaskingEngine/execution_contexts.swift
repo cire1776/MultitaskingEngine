@@ -2,7 +2,7 @@ import Foundation
 import PointerUtilities
 
 /// ✅ Execution Context Error Types
-enum ExecutionContextError: Error, Equatable {
+public enum ExecutionContextError: Error, Equatable {
     case variableNotFound(String)
     case indexOutOfRange(UInt)
     case invalidVariableType
@@ -133,7 +133,7 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
 
     public var isDraining: Bool { executionMode == .draining }
 
-    subscript(name: String) -> Result<Any?, ExecutionContextError> {
+    public subscript(name: String) -> Result<Any?, ExecutionContextError> {
         get {
             dynamicLock.lock()
             defer { dynamicLock.unlock() }
@@ -204,7 +204,7 @@ public class StreamExecutionContext: HeapExecutionContext, EC.Streaming, @unchec
         dynamicVariables.removeValue(forKey: name)
     }
 
-    func ensure(_ name: String, defaultValue: Any?) {
+    public func ensure(_ name: String, defaultValue: Any?) {
         dynamicLock.lock()
         defer { dynamicLock.unlock() }
 
