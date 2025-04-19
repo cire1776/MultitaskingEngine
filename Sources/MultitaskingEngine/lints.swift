@@ -20,6 +20,8 @@ public enum LintTable {
 
     public protocol Steppable {
         var identifier: Int { get set }
+        
+        var lintCount: Int  { get }
 
         // Execute the next lint and return an OperationState.
         func executionStep(runner: LintRunner) async -> OperationState
@@ -45,6 +47,8 @@ extension LintTable {
     public struct Sequential: Steppable {
         public var lints: LintArray
         public var identifier: Int
+        
+        public var lintCount: Int { lints.count }
 
         public init(lints: LintArray, identifier: Int = 0) {
             self.lints = lints
@@ -67,6 +71,8 @@ extension LintTable {
     public struct Loop: Steppable {
         public var lints: LintArray
         public var identifier: Int
+        
+        public var lintCount: Int { lints.count }
 
         public init(lints: LintArray, identifier: Int = 0) {
             self.lints = lints
@@ -93,6 +99,8 @@ extension LintTable {
     public class Prefaced: Steppable {
         private var preface: LintTable.Sequential
         private var main: LintTable.Steppable
+        
+        public var lintCount: Int { isPrefaceRunning ? preface.lintCount : main.lintCount }
 
         private var isPrefaceRunning = true
         private var aborted: Bool = false
