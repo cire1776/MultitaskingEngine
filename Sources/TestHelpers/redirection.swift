@@ -14,7 +14,7 @@
 
 import Foundation
 
-func captureStdOut(_ execute: () -> Void) -> String {
+public func captureStdOut(_ execute: () -> Void) -> String {
     let pipe = Pipe()
     let originalStdOut = dup(fileno(stdout))  // ✅ Save original stdout
 
