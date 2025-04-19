@@ -113,6 +113,13 @@ public enum LintTable {
         func executionStep(runner: LintRunner) async -> OperationState
 
         mutating func prepend(_ lint: @escaping Lint)
+
+        #if DEBUG
+        var allMetadata: [LintMetadata] { get }
+
+        @inline(__always)
+        func metadata(runner: LintRunner) -> LintMetadata
+        #endif
     }
 
     public class Node {
@@ -136,13 +143,28 @@ extension LintTable {
         
         public var lintCount: Int { lints.count }
 
+        #if DEBUG
+        public var allMetadata: [LintMetadata]
+        #endif
+
         public init(lints: LintArray, identifier: Int = 0) {
             self.lints = lints
             self.identifier = identifier
+            self.allMetadata = Array(repeating: LintSpecifier.NULL.metadata, count: lints.count)
+        }
+
+        public init(specifiers: [LintSpecifier], identifier: Int = 0) {
+            self.init(lints: specifiers.map(\.lint), identifier: identifier)
+
+            #if DEBUG
+            assert(allMetadata.count == lints.count)
+            self.allMetadata = specifiers.map(\.metadata)
+            #endif
         }
 
         public mutating func prepend(_ lint: @escaping Lint) {
             lints.insert(lint, at: 0)
+            allMetadata.insert(LintSpecifier.NULL.metadata, at: 0)
         }
 
         @inline(__always)
@@ -163,12 +185,24 @@ extension LintTable {
         public init(lints: LintArray, identifier: Int = 0) {
             self.lints = lints
             self.identifier = identifier
+            self.allMetadata = Array(repeating: LintSpecifier.NULL.metadata, count: lints.count)
+        }
+        
+        public init(specifiers: [LintSpecifier], identifier: Int = 0) {
+            self.init(lints: specifiers.map(\.lint), identifier: identifier)
+
+            #if DEBUG
+            self.allMetadata = specifiers.map(\.metadata)
+            assert(allMetadata.count == lints.count)
+            assert(allMetadata.contains(where: {$0.name == nil}))
+            #endif
         }
 
-        public mutating func prepend(_ lint: @escaping Lint) {
-            lints.insert(lint, at: 0)
+       public mutating func prepend(_ lint: @escaping Lint) {
+           lints.insert(lint, at: 0)
+           allMetadata.insert(LintSpecifier.NULL.metadata, at: 0)
         }
-
+        
         public func executionStep(runner: LintRunner) async -> OperationState {
             if runner.lintCounter >= self.lints.count {
                 runner.lintCounter = 0
@@ -180,6 +214,10 @@ extension LintTable {
             }
             return result
         }
+        
+        #if DEBUG
+        public var allMetadata: [LintMetadata]
+        #endif
     }
 
     public class Prefaced: Steppable {
@@ -198,6 +236,11 @@ extension LintTable {
             self.main = main
 
             self.identifier = identifier
+            
+            #if DEBUG
+            self.allMetadata = main.allMetadata
+            assert(allMetadata.count == main.lintCount)
+            #endif
         }
 
         public func prepend(_ lint: @escaping Lint) {
@@ -221,7 +264,29 @@ extension LintTable {
                 return await main.executionStep(runner: runner)
             }
         }
+        
+        #if DEBUG
+        // not used
+        public let allMetadata: [LintMetadata]
+        
+        public func metadata(runner: any LintRunner) -> LintMetadata {
+            if isPrefaceRunning {
+                return preface.metadata(runner: runner)
+            } else {
+                return main.metadata(runner: runner)
+            }
+        }
+        #endif
     }
+}
+
+extension LintTable.Steppable {
+    #if DEBUG
+    @inline(__always)
+    public func metadata(runner: LintRunner) -> LintMetadata {
+        return runner.lintCounter < allMetadata.count ? allMetadata[runner.lintCounter] : .NULL
+    }
+    #endif
 }
 
 public protocol LintProvider: AnyObject {
