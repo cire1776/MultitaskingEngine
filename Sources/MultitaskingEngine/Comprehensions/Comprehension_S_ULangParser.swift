@@ -19,16 +19,16 @@
 
 import Foundation
 
-final class Comprehension_S_ULangParser: Comprehension.Subscription {
-    var context: SubscriptionStreamExecutionContext
-    var executionContext: StreamExecutionContext
+final public class Comprehension_S_ULangParser: Comprehension.Subscription {
+    public var context: SubscriptionStreamExecutionContext
+    public var executionContext: StreamExecutionContext
 
-    var table: any LintTable.Steppable
+    public var table: any LintTable.Steppable
 
-    var operationID: Int = UUID().hashValue
+    public var operationID: Int = UUID().hashValue
 
-    var mainLoopID: Int = 2
-    var tickFlowID: Int = 1
+    public var mainLoopID: Int = 2
+    public var tickFlowID: Int = 1
 
     public var pumpers: [Int] = []
 
@@ -88,9 +88,9 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         var result: EntityResult = .proceed
         let outputStreams: SubscriptionMask = 0x1
 
-        return LintTable.Sequential(lints: [
-            { [self] _ in result = emitLine.next(); return .running },
-            { [self] _ in dispatch(on: result, emitting: outputStreams) }
+        return LintTable.Sequential(specifiers: [
+            .init({ [self] _ in result = emitLine.next(); return .running }, name: "emitLine", description: "emits a single line"),
+            .init({ [self] _ in dispatch(on: result, emitting: outputStreams) }, name: "emitLine Dispatch")
         ])
     }
 
@@ -100,10 +100,13 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         let outputStreams: SubscriptionMask = 0x1
         var result: EntityResult = .proceed
 
-        return LintTable.Sequential(lints: [
-            { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = emitCharacter.process(); return .running },
-            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) }
+        return LintTable.Sequential(specifiers: [
+            .init({ [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
+                  name: "emitCharacter.guard", description: "Verifies subscriptions are valid"),
+            .init({ [self] _ in result = emitCharacter.process(); return .running },
+                  name: "emitCharacter.process", description: "Parses one character into a token"),
+            .init({ [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) },
+                  name: "emitCharacter.dispatch", description: "Routes output based on result")
         ])
     }
 
@@ -113,10 +116,13 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         let outputStreams: SubscriptionMask = 0x1
         var result: EntityResult = .proceed
 
-        return LintTable.Sequential(lints: [
-            { [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = identifySymbol.process(); return .running },
-            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
+        return LintTable.Sequential(specifiers: [
+            .init({ [self] _ in subscriptionGuard(using: inputStreams, emitting: outputStreams) },
+                  name: "identifySymbol.guard"),
+            .init({ [self] _ in result = identifySymbol.process(); return .running },
+                  name: "identifySymbol.process"),
+            .init({ [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) },
+                  name: "identifySymbol.dispatch")
         ])
     }
 
@@ -126,31 +132,44 @@ final class Comprehension_S_ULangParser: Comprehension.Subscription {
         let outputStreams: SubscriptionMask = 0x2
         var result: EntityResult = .proceed
 
-        return LintTable.Sequential(lints: [
-            { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? collect.drain(publishes: outputStreams) : collect.process(); return .running },
-            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) }
+        return LintTable.Sequential(specifiers: [
+            .init({ [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
+                  name: "collect.guard", description: "Ensures stream state is valid for collection"),
+            .init({
+                [self] _ in result = executionContext.isDraining
+                    ? collect.drain(publishes: outputStreams)
+                    : collect.process()
+                return .running
+            }, name: "collect.process", description: "Performs collection or draining based on mode"),
+            .init({ [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams, on: runner) },
+                  name: "collect.dispatch", description: "Dispatches the collection result")
         ])
     }
 
     @inline(__always)
     private func buildBlock(runner: LintRunner) -> LintTable.Steppable {
         let inputStreams: SubscriptionMask = 0x2
-
         let outputStreams: SubscriptionMask = 0x4
         var result: EntityResult = .proceed
 
-        return LintTable.Sequential(lints: [
-            { [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
-            { [self] _ in result = executionContext.isDraining ? build.drain() : build.process(); return .running },
-            { [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) }
+        return LintTable.Sequential(specifiers: [
+            .init({ [self] _ in drainableSubscriptionGuard(using: inputStreams, emitting: outputStreams) },
+                  name: "build.guard", description: "Ensures correct input/output before building"),
+            .init({
+                [self] _ in result = executionContext.isDraining
+                    ? build.drain()
+                    : build.process()
+                return .running
+            }, name: "build.process", description: "Builds or drains AST based on execution context"),
+            .init({ [self] _ in dispatch(on: result, using: inputStreams, emitting: outputStreams) },
+                  name: "build.dispatch", description: "Dispatches result of build step")
         ])
     }
-
+    
     @inline(__always)
     private func debugBlock(runner: LintRunner) -> LintTable.Steppable {
-        return LintTable.Sequential(lints: [
-            { [self] _ in dispatch(on: debugStream.process()) }
+        LintTable.Sequential(specifiers: [
+            .init({ [self] _ in dispatch(on: debugStream.process()) }, name: "debug.dispatch", description: "Emits debug information")
         ])
     }
 }
