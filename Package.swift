@@ -10,7 +10,8 @@ let package = Package(
         .library(
             name: "MultitaskingEngine",
             targets: ["MultitaskingEngine", "PointerUtilities"]
-        )
+        ),
+        .executable(name: "lint_stepper", targets: ["lint_stepper"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.0"),
@@ -25,7 +26,32 @@ let package = Package(
                 "PointerUtilities",
                 .product(name: "Atomics", package: "swift-atomics")
             ],
-            path: "Sources/MultitaskingEngine"
+            path: "Sources/MultitaskingEngine",
+            swiftSettings: [
+                .define("DEBUG"),
+                .define("DEBUGGER")
+            ]
+        ),
+        .target(
+            name: "PosixCompat",
+            path: "CSources/PosixCompat",
+            publicHeadersPath: "include"
+        ),
+        .executableTarget(
+            name: "lint_stepper",
+            dependencies: [
+                "MultitaskingEngine",
+                "TestHelpers",
+                "PosixCompat"
+            ],
+            path: "Sources/LintStepper",
+            cSettings: [
+                .headerSearchPath("../CSources/PosixCompat/include")
+            ],
+            swiftSettings: [
+                .define("DEBUG"),
+                .define("DEBUGGER")
+            ]
         ),
         .target(
             name: "PointerUtilities",
@@ -54,6 +80,7 @@ let package = Package(
 //            ],
             linkerSettings: [
                 .linkedFramework("XCTest") // ✅ Explicitly link XCTest
-            ],        ),
+            ]
+        ),
     ]
 )

@@ -1,0 +1,4 @@
+module PosixCompat {
+    header "posix_compat.h"
+    export *
+}
