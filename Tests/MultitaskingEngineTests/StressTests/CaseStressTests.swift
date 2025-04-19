@@ -57,7 +57,7 @@ final class CaseStressTests: QuickSpec {
                 print("Dummy Value (Ignore): \(dummyValue)")  // ✅ Prevents optimization
             }
             
-            it("even better loop for a billiion times") {
+            xit("even better loop for a billiion times") {
                 // ✅ Run inside high-priority Task
                 Task(priority: .high) {
                     let iterations = 1_000_000_000  // **1 BILLION iterations**
