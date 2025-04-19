@@ -352,6 +352,10 @@ final public class ManualLintRunner: LintRunner, @unchecked Sendable {
 
     public var previousTableNode: LintTable.Node?
 
+    #if DEBUG
+    public var lintVisitor: ((LintMetadata, OperationState) -> Void)? = nil
+    #endif
+    
     public init(provider: RunnableLintProvider) {
         self.table = provider.table
         self.reference = provider // held to prevent disposal
@@ -364,8 +368,16 @@ final public class ManualLintRunner: LintRunner, @unchecked Sendable {
     }
 
     public func execute() async -> OperationState {
+        #if DEBUG
+        let metadata = table.metadata(runner: self)
+        #endif
+
         let result = await table.executionStep(runner: self)
 
+        #if DEBUG
+        lintVisitor?(metadata, result)
+        #endif
+        
         switch result {
         case .firstRun, .running:
             break
