@@ -59,6 +59,28 @@ final public class Subscriptions {
     public func reset() {
         self._available = 0
     }
+    
+    @inline(__always)
+    public func visit(_ body: (_ index: Int, _ source: Bool, _ available: Bool, _ exhausted: Bool) -> Void) {
+        var active = sources | exhausted | available
+        
+        var index = 0
+        
+        while active != 0 {
+            if (active & 1) != 0 {
+                let mask = UInt32(1) << index
+                body(
+                    index,
+                    (sources & mask) != 0,
+                    (self.available & mask) != 0,
+                    (exhausted & mask) != 0
+                )
+            }
+            
+            active >>= 1
+            index += 1
+        }
+    }
 }
 
 final public class FlowEntity {
