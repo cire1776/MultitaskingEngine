@@ -4,6 +4,7 @@
 //
 //  Created by Eric Russell on 4/1/25.
 //
+import Foundation
 
 public typealias Lint = (LintRunner) async -> OperationState
 public typealias LintArray = [Lint]
