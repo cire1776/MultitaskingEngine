@@ -63,12 +63,12 @@ final public class Comprehension_S_ULangParser: Comprehension.Subscription {
         self.executionContext = actualContext
         self.context = actualContext
 
-        self.emitLine = EmitStringWithReturns(executionContext: executionContext!, subscriptions: 0x0, publishes: 0x1)
-        self.emitCharacter = EmitCharacter(aliasMap: ["input": "output"], executionContext: executionContext!, subscriptions: 0x1, publishes: 0x1)
-        self.identifySymbol = IdentifySymbols(aliasMap: ["input": "output"], executionContext: executionContext!, subscriptions: 0x1, publishes: 0x1)
-        self.collect = Collect(aliasMap: ["input": "output", "output": "group"], executionContext: executionContext!, subscriptions: 0x1, publishes: 0x2)
-        self.build = BuildAST(aliasMap: ["input": "group", "output": "ast"], executionContext: executionContext!, subscriptions: 0x1, publishes: 0x2)
-        self.debugStream = DebugStream(executionContext: executionContext!, subscriptions: 0x2, publishes: 0x4)
+        self.emitLine = EmitStringWithReturns(executionContext: self.executionContext, subscriptions: 0x0, publishes: 0x1)
+        self.emitCharacter = EmitCharacter(aliasMap: ["input": "output"], executionContext: self.executionContext, subscriptions: 0x1, publishes: 0x1)
+        self.identifySymbol = IdentifySymbols(aliasMap: ["input": "output"], executionContext: self.executionContext, subscriptions: 0x1, publishes: 0x1)
+        self.collect = Collect(aliasMap: ["input": "output", "output": "group"], executionContext: self.executionContext, subscriptions: 0x1, publishes: 0x2)
+        self.build = BuildAST(aliasMap: ["input": "group", "output": "ast"], executionContext: self.executionContext, subscriptions: 0x1, publishes: 0x2)
+        self.debugStream = DebugStream(executionContext: self.executionContext, subscriptions: 0x2, publishes: 0x4)
 
         self .table = LintTable.Sequential(lints: [], identifier: 0)
 
