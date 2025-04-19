@@ -46,7 +46,7 @@ class APMLogTests: AsyncSpec {
             try? FileManager.default.removeItem(at: testLogFileURL)
         }
         
-        xdescribe("APMLog") {
+        describe("APMLog") {
             context("Logging behavior") {
                 it("should log messages with correct level ordering") {
                     await logger.asyncLog(level: .debug, message: "Debug message")
@@ -206,7 +206,7 @@ class APMLogTests: AsyncSpec {
             }
         }
         
-        xdescribe("APMLog Categories") {
+        describe("APMLog Categories") {
             var logger: APMLog!
             var testLogFileURL: URL!
             
