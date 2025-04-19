@@ -9,6 +9,91 @@ import Foundation
 public typealias Lint = (LintRunner) async -> OperationState
 public typealias LintArray = [Lint]
 
+#if DEBUG
+public struct LintMetadata {
+    static nonisolated(unsafe) public let NULL = LintMetadata()
+    public var name: String
+    public var file: StaticString?
+    public var line: UInt?
+    public var column: UInt?
+    public var description: StaticString?
+    public var sourceSnippet: String?
+    
+    public let isNull: Bool
+
+    public var shortFilePath: String? {
+        guard let fullPath = self.file else { return nil }
+
+        let url = URL(fileURLWithPath: String(describing: fullPath))
+        let filename = url.lastPathComponent
+        let folder = url.deletingLastPathComponent().lastPathComponent
+
+        return "\(folder)/\(filename)"
+    }
+   
+    public init() {
+        self.name = "NULL"
+        self.isNull = true
+    }
+    
+    public init(name: String,
+                file: StaticString?=nil,
+                line: UInt?=nil,
+                column: UInt?=nil,
+                description: StaticString? = nil,
+                sourceSnippet: String? = nil) {
+        self.name = name
+        self.file = file
+        self.line = line
+        self.column = column
+        self.description = description
+        self.sourceSnippet = sourceSnippet
+        self.isNull = false
+    }
+}
+#endif
+
+public struct LintSpecifier {
+    static nonisolated(unsafe) public let NULL = LintSpecifier({ _ in .unusualExecutionEvent(.exception("Not expected to be executed.")) }, name: "NULL")
+    
+    public let lint: Lint
+    public let metadata: LintMetadata
+   
+    public init(
+        _ lint: @escaping Lint,
+        name: String = "closure",
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        column: UInt = #column,
+        description: StaticString? = nil
+    ) {
+        self.lint = lint
+        
+    #if DEBUGGER
+//    print("==== DEBUGGER ENABLED ====")
+    let snippet = SourceSnippetExtractor.closureBody(from: file, at: line)
+    #else
+//    print("==== DEBUGGER DISABLED ====")
+    let snippet: String? = nil
+    #endif
+        
+
+        
+#if DEBUG
+        self.metadata = LintMetadata(
+            name: name,
+            file: file,
+            line: line,
+            column: column,
+            description: description,
+            sourceSnippet: snippet
+        )
+#else
+        self.metadata = .NULL
+#endif
+    }
+}
+
 // MARK: - LintTable and Concrete Types
 public enum LintTable {
     public enum Category: Int {
