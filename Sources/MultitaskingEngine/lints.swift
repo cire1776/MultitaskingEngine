@@ -166,15 +166,15 @@ extension LintTable {
             lints.insert(lint, at: 0)
             allMetadata.insert(LintSpecifier.NULL.metadata, at: 0)
         }
-
+        
         @inline(__always)
         public func executionStep(runner: LintRunner) async -> OperationState {
             guard runner.lintCounter < self.lints.count else { return .completed }
-
+            
             return await lints[runner.lintCounter](runner)
         }
     }
-
+    
     /// A loop lint table resets its counter once a lint signals .completed.
     public struct Loop: Steppable {
         public var lints: LintArray
@@ -219,7 +219,7 @@ extension LintTable {
         public var allMetadata: [LintMetadata]
         #endif
     }
-
+    
     public class Prefaced: Steppable {
         private var preface: LintTable.Sequential
         private var main: LintTable.Steppable
@@ -228,13 +228,13 @@ extension LintTable {
 
         private var isPrefaceRunning = true
         private var aborted: Bool = false
-
+        
         public var identifier: Int
-
+        
         public init(preface: LintTable.Sequential, main: LintTable.Steppable, identifier: Int=0) {
             self.preface = preface
             self.main = main
-
+            
             self.identifier = identifier
             
             #if DEBUG
@@ -243,13 +243,13 @@ extension LintTable {
             #endif
         }
 
-        public func prepend(_ lint: @escaping Lint) {
+       public func prepend(_ lint: @escaping Lint) {
             fatalError("Not Implemented")
         }
-
+        
         public func executionStep(runner: LintRunner) async -> OperationState {
             if aborted { return .completed }
-
+            
             if isPrefaceRunning {
                 let result = await preface.executionStep(runner: runner)
                 if result == .running { return .running }

@@ -19,42 +19,42 @@ final public class Subscriptions {
     private var sources: SubscriptionMask = 0
     public private(set) var exhausted: SubscriptionMask = 0
     private var _available: SubscriptionMask = 0
-
+    
     public init(sources: SubscriptionMask = .max) {
         self.sources = sources
         self.exhausted = 0
         self._available = 0
     }
-
+    
     public var available: SubscriptionMask {
         get { _available & ~exhausted }
     }
-
+    
     @inline(__always)
     public func areAllAvailable(_ mask: SubscriptionMask) -> Bool {
         (self.available & mask) == mask
     }
-
+    
     @inline(__always)
     public func areAllExhausted() -> Bool {
         (self.exhausted & sources) == sources
     }
-
+    
     @inline(__always)
     public func publish(_ mask: SubscriptionMask) {
         _available |= (mask & ~exhausted)
     }
-
+    
     @inline(__always)
     public func unpublish(_ mask: SubscriptionMask) {
         _available &= ~mask
     }
-
+    
     @inline(__always)
     public func exhaust(_ mask: SubscriptionMask) {
         exhausted |= mask
     }
-
+    
     @inline(__always)
     public func reset() {
         self._available = 0
