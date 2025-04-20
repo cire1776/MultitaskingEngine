@@ -74,8 +74,8 @@ final class Comprehension_1A5D27B3: Comprehension.Standard, LintProvider, @unche
         ])
     }
 
-    public func instantiate(preinitialization_lint: Lint?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {
-        return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
+    public func instantiate(preinitialization_specifier: LintSpecifier?=nil, executionContext: StreamExecutionContext?=nil) -> Comprehension.Instance {
+        return Comprehension.Instance(blueprint: self, preinitializationSpecifier: preinitialization_specifier, executionContext: executionContext)
     }
 
     @inline(__always)

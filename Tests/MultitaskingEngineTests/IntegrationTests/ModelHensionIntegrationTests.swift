@@ -254,10 +254,10 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 beforeEach {
                     // Instantiate a model hension instance from the blueprint,
                     // passing a preinitialization lint that sets 'baseDir'.
-                    modelInstance = blueprint.instantiate(preinitialization_lint: { operation in
+                    modelInstance = blueprint.instantiate(preinitialization_specifier: LintSpecifier({ operation in
                         executionContext.ensure("baseDir",defaultValue: testDir)
                         return .firstRun
-                    }, executionContext: executionContext)
+                    }), executionContext: executionContext)
                     
                     // Create a ManualLintRunner to execute the hension.
                     runner = ManualLintRunner(provider: modelInstance)
@@ -325,10 +325,10 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 beforeEach {
                     // Instantiate the model hension instance from the blueprint,
                     // providing a preinitialization lint that injects the baseDir.
-                    modelInstance = blueprint.instantiate(preinitialization_lint: { _ in
+                    modelInstance = blueprint.instantiate(preinitialization_specifier: LintSpecifier({ _ in
                         executionContext.ensure("baseDir",defaultValue:  testDir)
                         return .firstRun
-                    }, executionContext: executionContext)
+                    }), executionContext: executionContext)
                     
                     // Create an Operation from the instance's lints.
                     // The Operation initializer takes the operation name, an execution context, and an array of lint closures.
@@ -401,10 +401,10 @@ final class ModelHensionIntegrationTests: AsyncSpec {
                 
                 // Instantiate a model hension instance from the blueprint,
                 // providing a preinitialization lint that injects 'baseDir'.
-                modelInstance = blueprint.instantiate(preinitialization_lint: { _ in
+                modelInstance = blueprint.instantiate(preinitialization_specifier: LintSpecifier({ _ in
                     executionContext.ensure("baseDir",defaultValue: testDir)
                     return .firstRun
-                }, executionContext: executionContext)
+                }), executionContext: executionContext)
                 
                 // Create an Operation from the instance's lint array.
                 operation = MultitaskingEngine.Operation(

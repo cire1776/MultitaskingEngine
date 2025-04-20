@@ -106,28 +106,28 @@ func simplePreinit(_ stream: String = "input", default: Any = "~nil~") -> (Strea
     }
 }
 
-func preinits(_ streams: [String: Any?]) -> (StreamExecutionContext) -> Lint {
+func preinits(_ streams: [String: Any?]) -> (StreamExecutionContext) -> LintSpecifier {
     return { context in
-        return { _ in
+        return LintSpecifier({ _ in
             streams.forEach { stream, `default` in
                 context.ensure(stream, defaultValue: `default`)
             }
             return .running
-        }
+        })
     }
 }
 
 func runComprehension<Comp, T>(
     input: Any,
     blueprint: (StreamExecutionContext) -> Comp,
-    with contextActions: (StreamExecutionContext) throws -> (preinit: Lint, extract: () -> T?)
+    with contextActions: (StreamExecutionContext) throws -> (preinit: LintSpecifier, extract: () -> T?)
 ) async -> T? where Comp: Comprehension.Subscription {
     let context = SubscriptionStreamExecutionContext()
 
     let result = try? contextActions(context)
     let comp = blueprint(context)
 
-    let instance = comp.instantiate(preinitialization_lint: result?.preinit, executionContext: context)
+    let instance = comp.instantiate(preinitialization_specifier: result?.preinit, executionContext: context)
     let runner = ManualLintRunner(provider: instance)
     _ = await runner.executeAll()
 

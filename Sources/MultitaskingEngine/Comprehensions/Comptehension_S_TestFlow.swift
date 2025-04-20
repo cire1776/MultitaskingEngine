@@ -64,8 +64,8 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
         self.executionContext.subscriptions = Subscriptions(sources: 0x1)
     }
 
-    func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
-        return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
+    func instantiate(preinitialization_specifier: LintSpecifier?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
+        return Comprehension.Instance(blueprint: self, preinitializationSpecifier: preinitialization_specifier, executionContext: executionContext)
     }
 
     @inline(__always)

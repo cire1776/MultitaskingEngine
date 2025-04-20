@@ -47,8 +47,8 @@ class DummySubscription: Comprehension.Subscription {
         self.subscriptions = Subscriptions()
     }
     
-    func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
-        return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
+    func instantiate(preinitialization_specifier: LintSpecifier?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
+        return Comprehension.Instance(blueprint: self, preinitializationSpecifier: preinitialization_specifier, executionContext: executionContext)
     }
 }
 
@@ -74,13 +74,13 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
             context("Instantiation") {
                 it("uses the provided execution context if one is given") {
                     let customCtx = StreamExecutionContext()
-                    let instance = dummySub.instantiate(preinitialization_lint: nil, executionContext: customCtx)
+                    let instance = dummySub.instantiate(preinitialization_specifier: nil, executionContext: customCtx)
                     expect(instance.executionContext).to(beIdenticalTo(customCtx))
                 }
                 
                 it("defaults to the blueprint's execution context if none is provided") {
                     // In our dummy, the blueprint already has its executionContext set to ctx.
-                    let instance = dummySub.instantiate(preinitialization_lint: nil, executionContext: nil)
+                    let instance = dummySub.instantiate(preinitialization_specifier: nil, executionContext: nil)
                     expect(instance.executionContext).to(beIdenticalTo(ctx))
                 }
             }
@@ -90,10 +90,10 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
                     var output: [String] = []
                     
                     // Preinitialization lint: appends "preinit" and returns .firstRun.
-                    let preinitLint: Lint = { _ in
+                    let preinitSpecifier: LintSpecifier = LintSpecifier({ _ in
                         output.append("preinit")
                         return .firstRun
-                    }
+                    })
                     
                     // Main lint: appends "main" and returns .completed.
                     let mainLint: Lint = { _ in
@@ -106,7 +106,7 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
                     dummySub.table = LintTable.Sequential(lints: [mainLint], identifier: 1)
                     
                     // Instantiate the subscription instance with the preinitialization lint.
-                    let instance = dummySub.instantiate(preinitialization_lint: preinitLint, executionContext: ctx)
+                    let instance = dummySub.instantiate(preinitialization_specifier: preinitSpecifier, executionContext: ctx)
                     
                     // Execute the instance using the ManualLintRunner.
                     let runner = ManualLintRunner(provider: DummyLintProvider(table: instance.table))
@@ -130,7 +130,7 @@ final class ComprehensionSubscriptionTests: AsyncSpec {
                         dummySub.table = subTable
                         
                         // Instantiate a subscription instance.
-                        let instance = dummySub.instantiate(preinitialization_lint: nil, executionContext: ctx)
+                        let instance = dummySub.instantiate(preinitialization_specifier: nil, executionContext: ctx)
                         
                         // Execute using ManualLintRunner.
                         let runner = ManualLintRunner(provider: DummyLintProvider(table: instance.table))

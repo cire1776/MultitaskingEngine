@@ -111,8 +111,8 @@ public enum LintTable {
 
         // Execute the next lint and return an OperationState.
         func executionStep(runner: LintRunner) async -> OperationState
-
-        mutating func prepend(_ lint: @escaping Lint)
+        
+        mutating func prepend(_ specifier: LintSpecifier)
 
         #if DEBUG
         var allMetadata: [LintMetadata] { get }
@@ -162,9 +162,9 @@ extension LintTable {
             #endif
         }
 
-        public mutating func prepend(_ lint: @escaping Lint) {
-            lints.insert(lint, at: 0)
-            allMetadata.insert(LintSpecifier.NULL.metadata, at: 0)
+        public mutating func prepend(_ specifier: LintSpecifier) {
+            lints.insert(specifier.lint, at: 0)
+            allMetadata.insert(specifier.metadata,at: 0)
         }
         
         @inline(__always)
@@ -198,9 +198,9 @@ extension LintTable {
             #endif
         }
 
-       public mutating func prepend(_ lint: @escaping Lint) {
-           lints.insert(lint, at: 0)
-           allMetadata.insert(LintSpecifier.NULL.metadata, at: 0)
+       public mutating func prepend(_ specifier: LintSpecifier) {
+           lints.insert(specifier.lint, at: 0)
+           allMetadata.insert(specifier.metadata, at: 0)
         }
         
         public func executionStep(runner: LintRunner) async -> OperationState {
@@ -243,7 +243,7 @@ extension LintTable {
             #endif
         }
 
-       public func prepend(_ lint: @escaping Lint) {
+       public func prepend(_ specifier: LintSpecifier) {
             fatalError("Not Implemented")
         }
         

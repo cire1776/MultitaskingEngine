@@ -125,7 +125,7 @@ public enum Comprehension {
 
         init(executionContext: StreamExecutionContext?)
 
-        func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Instance
+        func instantiate(preinitialization_specifier: LintSpecifier?, executionContext: StreamExecutionContext?) -> Instance
     }
 
     public protocol Standard: Common {  }
@@ -154,15 +154,15 @@ public enum Comprehension {
             "\(blueprintName)__\(String(format: "%X", UUID().uuidString.hashValue))"
         }
 
-        init(blueprint: Common, preinitializationLint: Lint?=nil, executionContext: StreamExecutionContext?=nil) {
+        init(blueprint: Common, preinitializationSpecifier: LintSpecifier?=nil, executionContext: StreamExecutionContext?=nil) {
             self.blueprintName = blueprint.operationName
 
             self.executionContext = executionContext ?? blueprint.executionContext
 
             self.table = blueprint.table
 
-            if let preinitializationLint = preinitializationLint {
-                self.table.prepend(preinitializationLint)
+            if let preinitializationSpecifier = preinitializationSpecifier {
+                self.table.prepend(preinitializationSpecifier)
             }
         }
     }
@@ -297,7 +297,7 @@ public extension Comprehension.Subscription {
         ], identifier: mainLoopID)
     }
 
-    func instantiate(preinitialization_lint: Lint?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
-        return Comprehension.Instance(blueprint: self, preinitializationLint: preinitialization_lint, executionContext: executionContext)
+    func instantiate(preinitialization_specifier: LintSpecifier?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {
+        return Comprehension.Instance(blueprint: self, preinitializationSpecifier: preinitialization_specifier, executionContext: executionContext)
     }
 }
