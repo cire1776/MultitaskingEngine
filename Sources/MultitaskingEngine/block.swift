@@ -42,14 +42,22 @@ public enum Block {
     }
 
     public class Node {
-        let table: Block.Steppable
+        let block: Block.Steppable
+        
+        @available(*, deprecated, renamed:  "block", message: "changed to block")
+        var table: Block.Steppable { block }
+        
         var counter: Int
         let previous: Block.Node?
-
-        init(table: Block.Steppable, counter: Int, previous: Block.Node?) {
-            self.table = table
+        
+        init(block: Block.Steppable, counter: Int, previous: Block.Node?) {
+            self.block = block
             self.counter = counter
             self.previous = previous
+        }
+
+        convenience init(table: Block.Steppable, counter: Int, previous: Block.Node?) {
+            self.init(block: table, counter: counter, previous: previous)
         }
     }
 }
@@ -98,7 +106,7 @@ extension Block {
         }
     }
     
-    /// A loop lint table resets its counter once a lint signals .completed.
+    /// A loop block resets its counter once a lint signals .completed.
     public struct Loop: Steppable {
         public var lints: LintArray
         public var identifier: Int
