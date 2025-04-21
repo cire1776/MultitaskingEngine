@@ -137,6 +137,26 @@ public struct LintSpecifier {
         self.metadata = .NULL
     #endif
     }
+    
+    public func withULangEntityID(_ uLangEntityID: ULangEntityID) -> LintSpecifier {
+        guard self.metadata.isNull == false else {
+            fatalError("NULL metadata not allowed for LintSpecifier")
+        }
+        let newMetadata: LintMetadata
+        
+        if self.metadata.uLangEntityID == uLangEntityID {
+            newMetadata = LintMetadata(metadata: self.metadata, uLangEntityID: uLangEntityID)
+        } else {
+            newMetadata = self.metadata
+        }
+        
+        let copy = LintSpecifier(
+            lint,
+            metadata: newMetadata,
+            ulangeEntityID: uLangEntityID
+        )
+        return copy
+    }
 }
 
 // MARK: - LintTable and Concrete Types
