@@ -1,0 +1,133 @@
+┌──┬──────────────────────────────────────────── LINT STEPPER ───────────────────────────────────────────────┐
+│  │                                                                                                         │
+╔═════════════════════════════════ 🏃‍♂️ ══════════════════════════════════╗────────────────────────────────────┤
+║  { _ in .unusualExecutionEvent(.exception("Not expected to be exeute… ║   ⛽️    Execution Context    🕰️ 1  │
+║ ────────────────────────────────── 1 ─────────────────────────────────║────────────────────────────────────┤
+║  ULang Op 1 ->   /*sticky*/                                           ║ Stream 0    : 🚰  🟢  🛏️           │
+║      { _ in .unusualExecutionEvent…│                                  ║ Stream 1    :     🟢  🛏️           │
+║      emitCharacter.process — { [se…│----emit character----            ║ Stream 2    :     🟢  🛏️           │
+║      ~empty                        │loading line                      ║────────────────────────────────────│
+║      ~empty                        │emitted: U                        ║ input: ULangParser = => subscript… │
+║      emitCharacter.dispatch — { [s…│                                  ║ output: ULangParser = => subscrip… │
+║  ULang Op 2 ->   /*scrolling*/                                        ║                                    │
+║      { _ in .unusualExecutionEvent…│                                  ║                                    │
+║       identify_symbols ->          │                                  ║                                    │
+║      identifySymbol.process — { [s…│---- Identifying Symbols ----     ║                                    │
+║      identifySymbol.dispatch — { […│                                  ║                                    │
+║                                    │                                  ║                                    │
+║      { _ in .unusualExecutionEvent…│                                  ║                                    │
+║  ULang Op 3 ->   /*scrolling*/                                        ║                                    │
+║      collect.process               │----- collect -----               ║                                    │
+║      ~empty                        │                                  ║                                    │
+║      ~empty                        │collect buffer:                   ║                                    │
+║      ~empty                        │                                  ║                                    │
+║      ~empty                        │                                  ║                                    │
+║      ~empty                        │collecting: Optional("U")         ║                                    │
+║      collect.dispatch — { [self] _…│                                  ║                                    │
+║  ULang Op 4 ->   /*scrolling*/                                        ║                                    │
+║─────────────────────────────────── 2 ─────────────────────────────────║                                    │
+║  ULang Op 5 ->   /*scrolling*/                                        ║                                    │
+║      collect.process               │----- collect -----               ║                                    │
+║      ~empty                        │                                  ║                                    │
+╚═══════════════════════════════════════════════════════════════════════╝────────────────────────────────────┘
+
+  [n] step   [c] capture   [space] pause   [r] reset   [q] quit
+
+
+
+## 🔍 Based on Where You Are Now (Terminal View @ 111x35)
+
+You have:
+
+### 1. **Execution Context (EC) View**
+- Occupies the **entire right side** of the screen **under the status bar**
+- Shows current tick (execution cycle), step (within that cycle), active streams, etc.
+
+### 2. **Status Bar**
+- Occupies the top line of the screen
+- Displays tick, execution state, possibly step count, flow, etc.
+
+### 3. **Output Column**
+- Must be **adjacent to both history and source**, depending on which is focused
+- Behaves like a Swift Playground output: contextual, step-specific, real-time
+
+### 4. **History View**
+- Scrollable, vertical listing of past execution steps
+- Grouped by ULang op within a tick
+- **Tick** is a complete cycle; steps cannot span ticks
+- **Single tick header** is displayed at the top, with a **visual marker** at each tick boundary (no repetition)
+- ULang ops are anchors for execution events
+
+### 5. **Source Pane (Focused)**
+- Replaces the former lint pane when active
+- Displays the original ULang source comprehension, **one op per line**
+- Uses a **hamburger menu icon** (☰) to represent the source view selector (instead of a document emoji, which is reserved for paging)
+- **Four-digit line numbers** are shown to the left of each line (e.g., `0001`)
+- **Next Lint View is omitted** here (no lint annotations)
+- Each ULang op visually aligns with its corresponding output during execution, **even if output spans multiple lines**
+- The pane is intentionally shorter than the history pane to reflect its structural rather than temporal nature
+
+---
+
+## 🌐 History Pane Layout Example (35 lines max)
+
+
+
+
+```
+┌──┬──────────────────────────────────────────── LINT STEPPER ───────────────────────────────────────────────┐
+│  │                                                                                                         │
+╔═════════════════════════════════ 🏃‍♂️ ══════════════════════════════════╗────────────────────────────────────┤
+║  { _ in .unusualExecutionEvent(.exception("Not expected to be exeute… ║   ⛽️    Execution Context    🕰️ 1  │
+║ ────────────────────────────────────────────────── 1 ────────────────────────────────────────────────║────────────────────────────────────┤
+║  ULang Op 1 ->   /*sticky*/                                           ║ Stream 0    : 🚰  🟢  🏟️           │
+║      { _ in .unusualExecutionEvent…│                                  ║ Stream 1    :     🟢  🏟️           │
+║      emitCharacter.process — { [se…│----emit character----            ║ Stream 2    :     🟢  🏟️           │
+║      ~empty                        │loading line                      ║────────────────────────────────────│
+║      ~empty                        │emitted: U                        ║ input: ULangParser = => subscript… │
+║      emitCharacter.dispatch — { [s…│                                  ║ output: ULangParser = => subscrip… │
+║  ULang Op 2 ->   /*scrolling*/                                        ║                                    │
+║      { _ in .unusualExecutionEvent…│                                  ║                                    │
+║       identify_symbols ->          │                                  ║                                    │
+║      identifySymbol.process — { [s…│---- Identifying Symbols ----     ║                                    │
+║      identifySymbol.dispatch — { […│                                  ║                                    │
+║                                    │                                  ║                                    │
+║      { _ in .unusualExecutionEvent…│                                  ║                                    │
+║  ULang Op 3 ->   /*scrolling*/                                        ║                                    │
+║      collect.process               │----- collect -----               ║                                    │
+║      ~empty                        │                                  ║                                    │
+║      ~empty                        │collect buffer:                   ║                                    │
+║      ~empty                        │                                  ║                                    │
+║      ~empty                        │                                  ║                                    │
+║      ~empty                        │collecting: Optional("U")         ║                                    │
+║      collect.dispatch — { [self] _…│                                  ║                                    │
+║  ULang Op 4 ->   /*scrolling*/                                        ║                                    │
+║──────────────────────────────────────────────── 2 ────────────────────────────────────────────────║                                    │
+║  ULang Op 3 ->   /*scrolling*/                                        ║                                    │
+║      collect.process               │----- collect -----               ║                                    │
+║      ~empty                        │                                  ║                                    │
+╚═══════════════════════════════════════════════════════════════════════╝────────────────────────────────────┘
+```
+
+This is updated
+## 🔀 Source Pane View (Shorter Block)
+
+*Note: Line numbers are displayed in gray, no separating line character. Execution position is highlighted, not marked by emoji.*
+
+```
+┌────────────────────────────────────────────────────── ☰ ───────────────────────────────────────────────────┐
+│      ULangParser = => subscription {                                                                        │
+│0002     from                                                                                                │
+│0003         emit line                                                                                       │
+│0004         -> emit character                                                                               │
+│0005         -> identify_symbols                                                                             │
+│0006         -> collect groups                                                                               │
+│0007         -> detect delimiters                                                                            │
+│0008         -> convert groups into tokens                                                                   │
+│0009         -> build ast.                                                                                   │
+│                                                                                                             │
+│        output: emitted: U                                                                                   │
+│                                                                                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+

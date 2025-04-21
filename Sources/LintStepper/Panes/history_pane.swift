@@ -15,6 +15,7 @@ protocol HistoryPresenter {
 
     func styleForStep(_ string: String, index: Int) -> String
     func styleForTick(_ tick: Int, index: Int) -> String
+    func styleForULangEntity(_ entityName: String,context: String, index: Int) -> String
 }
 
 final class HistoryPane: Pane, Focusable, ScrollableSelectable,  HistoryPresenter {
@@ -340,6 +341,25 @@ final class HistoryPane: Pane, Focusable, ScrollableSelectable,  HistoryPresente
         return "\(format)\(string.strippingANSI)\(ANSI.reset)"
     }
 
+    func styleForULangEntity(_ entityName: String,context: String, index: Int) -> String {
+        let line = context.split(separator: "\n", maxSplits: 1).first ?? ""
+        var format = ANSI.gray
+        
+        let parts = line.split(separator: entityName)
+        let (prefix, suffix) = (parts.first ?? "", parts.last ?? "")
+        
+        if isSelected(index) {
+            format = ANSI.selected
+        }
+
+        if presenter.isRecent(index) {
+            format = isSelected(index) ? ANSI.recentSelected : ANSI.recent
+        }
+
+        return "\(format)\(prefix)\(entityName.strippingANSI)\(format)\(suffix)\(ANSI.reset)"
+    }
+    
+    
     func styleForTick(_ tick: Int, index: Int) -> String {
         var line: String = "\(tick)"
         var format: String = ANSI.gray

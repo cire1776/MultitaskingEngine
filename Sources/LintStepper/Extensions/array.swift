@@ -5,6 +5,8 @@
 //  Created by Eric Russell on 4/14/25.
 //
 
+import MultitaskingEngine
+
 extension Array {
     func rotatedRight(by k: Int=1) -> [Element] {
         guard !isEmpty else { return self }

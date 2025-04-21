@@ -18,7 +18,7 @@ struct NextLintPanePresenter: DebuggerPresenter {
         let isNull = metadata?.isNull ?? true
         
         return formatEntityNameAndSnippet(
-            name: String(describing: metadata?.name ?? "NULL"),
+            name: String(describing: metadata?.role ?? "NULL"),
             snippet: metadata?.sourceSnippet ?? "",
             context: .next(isNullMetadata: isNull)
         )

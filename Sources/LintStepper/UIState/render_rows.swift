@@ -5,6 +5,8 @@
 //  Created by Eric Russell on 4/14/25.
 //
 
+import MultitaskingEngine
+
 protocol RenderRow: AnyObject {
     var stepIndex: Int { get }
     var tick: Int      { get }
@@ -17,6 +19,18 @@ class TickRenderRow: RenderRow {
     init(tick: Int, stepIndex: Int) {
         self.tick = tick
         self.stepIndex = stepIndex
+    }
+}
+
+class ULangEntityRenderRow: RenderRow {
+    let tick: Int
+    let stepIndex: Int
+    let ULangEntity: ULangEntity
+    
+    init(tick: Int, stepIndex: Int, ULangEntity: ULangEntity) {
+        self.tick = tick
+        self.stepIndex = stepIndex
+        self.ULangEntity = ULangEntity
     }
 }
 

@@ -48,7 +48,7 @@ final class OutputPane: Pane, HorizontallyScrollable, Focusable {
             case let row as StepRenderRow:
                 let string = (row.right ?? "~empty")
                     .skipVisibleCharacters(horizontalScrollOffset)
-                    .prefixVisibleCharacters(width, ellipsis: "…")
+                    .prefixVisibleCharacters(width - 1, ellipsis: "…")
                     .padding(to: self.width, ansiSafe: true)
                 
                 line = presenter.styleForStep(string, index: i + presenter.adjustedStartingIndex)

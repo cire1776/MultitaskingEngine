@@ -37,7 +37,10 @@ final class LintPane: Pane, HorizontallyScrollable, Focusable {
     }
     
     func renderContents() {
+        let divider = "\(ANSI.gray)│\(ANSI.reset)"
+        
         let rows = presenter.window
+        var indentationLevel = 0
 
         for i in 0..<rows.count {
             let renderRow = rows[i]
@@ -46,13 +49,20 @@ final class LintPane: Pane, HorizontallyScrollable, Focusable {
             switch renderRow {
             case let row as TickRenderRow:
                 line = presenter.styleForTick(row.tick, index: i + presenter.startingIndex)
+            case let row as ULangEntityRenderRow:
+                let entityWidth = self.width
+                line = presenter.styleForULangEntity(row.ULangEntity.sourceText, context: row.ULangEntity.sourceContext, index: i + presenter.adjustedStartingIndex)
+                    .skipVisibleCharacters(horizontalScrollOffset)
+                    .padding(to: entityWidth, ansiSafe: true)
+                    .prefixVisibleCharacters(entityWidth, ellipsis: "…")
+                    .appending(divider)
             case let row as StepRenderRow:
-                let string = (row.left ?? "~empty")
+                let string = (String(String(repeating: "  ", count: indentationLevel)) + (row.left ?? ""))
                     .skipVisibleCharacters(horizontalScrollOffset)
                     .prefixVisibleCharacters(width, ellipsis: "…")
                     .padding(to: self.width, ansiSafe: true)
-                    .appending(BoxDrawing.singleVertical.rawValue)
                 line = presenter.styleForStep(string, index: i + presenter.adjustedStartingIndex)
+                    .appending(divider)
             default:
                 line = "---- Unknown RenderRow ----"
             }

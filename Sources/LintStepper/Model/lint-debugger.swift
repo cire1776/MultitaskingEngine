@@ -30,8 +30,18 @@ struct StepResult {
     let id: UUID = UUID()
 }
 
+final class DebuggerLintRunner: BaseLintRunner, @unchecked Sendable {
+//    override init(provider: any RunnableLintProvider) {
+//        super.init(provider: provider)
+//    }
+    
+    override func handleSkipYield() async -> OperationState {
+        return .skipYield
+    }
+}
+
 final class LintDebugger: RenderRowProvider {
-    private let runner: ManualLintRunner
+    private let runner: DebuggerLintRunner
     private let context: StreamExecutionContext
     
     private(set) var stepResults: [StepResult] = []
@@ -49,7 +59,7 @@ final class LintDebugger: RenderRowProvider {
     
     var isCapturing = false
     
-    init(runner: ManualLintRunner, context: StreamExecutionContext) {
+    init(runner: DebuggerLintRunner, context: StreamExecutionContext) {
         self.context = context
         self.runner = runner
         self.runner.lintVisitor = self.recordLintEvent
@@ -87,6 +97,12 @@ final class LintDebugger: RenderRowProvider {
         
         let output = await captureStdOut {
             result = await runner.execute()
+        }
+        
+        // step until we have real data
+        if metadata.isNull {
+            await _step()
+            return
         }
         
         let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)

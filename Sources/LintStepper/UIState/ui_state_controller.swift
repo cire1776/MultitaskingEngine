@@ -117,7 +117,7 @@ final class UIStateController: RenderRowProvider, DebuggerFormatter {
         let metadata = stepResult.metadata
         
         let label = formatEntityNameAndSnippet(
-            name: String(describing: metadata.name),
+            name: String(describing: metadata.role),
             snippet: metadata.sourceSnippet,
             context: .history
         )
@@ -126,6 +126,7 @@ final class UIStateController: RenderRowProvider, DebuggerFormatter {
         
         let stepIdx = stepResults.count - 1 // The just-added step
         
+        // Check for tick boundary
         var previousTick = -1
         if stepResults.count > 1 {
             previousTick = stepResults[stepResults.count - 2].executionContextSnapshot.tick
@@ -136,6 +137,19 @@ final class UIStateController: RenderRowProvider, DebuggerFormatter {
             renderRows.append(TickRenderRow(tick: tick, stepIndex: stepIdx))
         }
         
+        // Check for entity boundary
+        var previousEntityID: ULangEntityID?
+        if stepResults.count > 1 {
+            previousEntityID = stepResults[stepResults.count - 2].metadata.uLangEntityID
+        }
+        
+        let entityID: ULangEntityID = metadata.uLangEntityID
+        if previousEntityID != entityID {
+            let uLangEntity = ULangEntityMap[entityID] ?? ULangEntity(kind: .annotation, sourceText: "ULangEntity Not Found", sourceContext: "ULangEntity Not Found", file: "", range: SourceRange(start: SourcePosition(line: 0, column: 0), end: SourcePosition(line: 0, column: 0))) // .NULL
+            renderRows.append(ULangEntityRenderRow(tick: tick, stepIndex: stepIdx, ULangEntity: uLangEntity))
+        }
+        
+        // Check for empty output
         if lines.isEmpty {
             renderRows.append(StepRenderRow(stepIndex: stepIdx, tick: tick, left: label, right: nil))
         } else {
@@ -145,7 +159,10 @@ final class UIStateController: RenderRowProvider, DebuggerFormatter {
             }
         }
         
+        // Add to recent array
         historyPane.highlightedStepIds.insert(stepResult.id)
+        
+        // Handle selection
         if let renderRow = renderRows.last {
             historyPane.setSelection(renderRows.count - 1)
         }

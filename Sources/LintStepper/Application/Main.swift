@@ -8,7 +8,6 @@
 import Foundation
 import MultitaskingEngine
 
-
 nonisolated(unsafe) var needRender = true
 
 enum OutputContext {
@@ -16,7 +15,6 @@ enum OutputContext {
     case history
     case capture
 }
-
 
 enum Command {
     // Application
@@ -46,10 +44,9 @@ enum Command {
     case setTickScrollMode
     case setPageScrollMode
     
-    
     // General
     case nop
-    
+
 }
 
 @main
@@ -57,12 +54,11 @@ struct LintStepperMain {
     static func main() async {
         let blueprint = Comprehension_S_ULangParser()
         let context = blueprint.context
-        let instance = blueprint.instantiate(preinitialization_lint: { _ in context.ensure("input", defaultValue: "ULangParser = => subscription {\n     from emit line ->\n     emit character ->\n     identify_symbols ->\n     collect groups ->\n     detect delimiters ->\n     convert groups into tokens ->\n     build ast.\n }"); return .running }, executionContext: nil )
-        let runner = ManualLintRunner(provider: instance)
-        
-        
+        let specifier = LintSpecifier({ _ in context.ensure("input", defaultValue: "ULangParser = => subscription {\n     from emit line ->\n     emit character ->\n     identify_symbols ->\n     collect groups ->\n     detect delimiters ->\n     convert groups into tokens ->\n     build ast.\n }"); return .running }, role: "Table preinitialization", uLangEntityID: ULangEntityID("Comprehension_S_ULangParser"))
+        let instance = blueprint.instantiate(preinitialization_specifier: specifier, executionContext: nil )
+        let runner = DebuggerLintRunner(provider: instance)
+                
         let debugger = LintDebugger(runner: runner, context: context)
-//        let debugger = LintDebugger.generateMockStepResults()
         
         let ui = TextUI()
         let uiController = UIStateController(debugger: debugger, context: context, ui: ui)
@@ -94,7 +90,6 @@ struct LintStepperMain {
                 break
             case .step:
                 await debugger.step()
-//            case .bigStep: // handled by uiController as an interface command
             case .reset:
                 debugger.reset()
                 ui.reset()
