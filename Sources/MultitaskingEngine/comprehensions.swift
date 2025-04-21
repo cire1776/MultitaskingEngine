@@ -136,7 +136,7 @@ public enum Comprehension {
         var pumpers: [Int] { get set }
 
         @inline(__always)
-        func modifyTickLints(_ lints: inout LintArray)
+        func modifyTickSpecifiers(_ specifiers: inout [LintSpecifier])
 
         @inline(__always)
         func produceTickFlow(for executor: String, flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
@@ -264,26 +264,26 @@ public extension Comprehension.Subscription {
     }
 
     @inline(__always)
-    func modifyTickLints(_ lints: inout LintArray) {  }
+    func modifyTickSpecifiers(_ specifiers: inout [LintSpecifier]) {  }
 
     @inline(__always)
     func produceTickFlow(for executor: String, flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
-        var lints: LintArray = flows.map { block in
-            { $0.pushSuboperation(table: block($0)); return .skipYield }
+        var specifiers: [LintSpecifier] = flows.map { block in
+            LintSpecifier({ $0.pushSuboperation(table: block($0)); return .skipYield }, role: "load entity")
         }
 
-        modifyTickLints(&lints)
+        modifyTickSpecifiers(&specifiers)
 
-        lints.append({ [self] in
+        specifiers.append(LintSpecifier({ [self] in
             if let pumper = self.pumpers.popLast() {
                 $0.lintCounter = pumper - 1
                 self.executionContext.executionMode = .standard
                 return .running
             }
             return executionContext.isDraining ? .nonLocalBreak(mainLoopID) : .completed
-        })
+        }, role: "End tick loop"))
 
-        return LintTable.Sequential(lints: lints, identifier: self.tickFlowID)
+        return LintTable.Sequential(specifiers: specifiers.tagged(for: executor), identifier: self.tickFlowID)
     }
 
     @inline(__always)
