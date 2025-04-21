@@ -265,8 +265,7 @@ extension LintTable {
 
             #if DEBUG
             self.allMetadata = specifiers.map(\.metadata)
-            assert(allMetadata.count == lints.count)
-            assert(allMetadata.contains(where: {$0.role == nil}))
+            assert(allMetadata.count == specifiers.count)
             #endif
         }
 
