@@ -429,7 +429,7 @@ extension LintRunner {
 
 public protocol RunnableLintProvider: LintProvider {  }
 
-final public class ManualLintRunner: LintRunner, @unchecked Sendable {
+open class BaseLintRunner: LintRunner, @unchecked Sendable {
     public var table: LintTable.Steppable
     public var lintCounter: Int = 0
 
@@ -499,12 +499,16 @@ final public class ManualLintRunner: LintRunner, @unchecked Sendable {
             }
             return .running
         case .unusualExecutionEvent:
-            // Exit early if a lint signals suspension or an error.
             return result
-            default:
+        default:
             fatalError("unexpected case: \(result)")
         }
+
         lintCounter += 1
         return .running
-     }
+    }
+}
+
+public final class ManualLintRunner: BaseLintRunner, @unchecked Sendable {
+    // nothing to override
 }
