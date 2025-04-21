@@ -12,12 +12,14 @@ public typealias LintArray = [Lint]
 #if DEBUG
 public struct LintMetadata {
     static nonisolated(unsafe) public let NULL = LintMetadata()
-    public var name: String
+    public var role: String
     public var file: StaticString?
     public var line: UInt?
     public var column: UInt?
     public var description: StaticString?
     public var sourceSnippet: String?
+    
+    public var uLangEntityID: ULangEntityID
     
     public let isNull: Bool
 
@@ -32,65 +34,108 @@ public struct LintMetadata {
     }
    
     public init() {
-        self.name = "NULL"
+        self.role = "NONE"
+        self.uLangEntityID = ULangEntityID("null")
         self.isNull = true
     }
+
+    public init(metadata: LintMetadata, uLangEntityID: ULangEntityID) {
+        self.role = metadata.role
+        self.uLangEntityID = uLangEntityID
+        self.file = metadata.file
+        self.line = metadata.line
+        self.column = metadata.column
+        self.description = metadata.description
+        self.isNull = metadata.isNull
+    }
     
-    public init(name: String,
+    public init(role: String,
+                uLangEntityID: ULangEntityID,
                 file: StaticString?=nil,
                 line: UInt?=nil,
                 column: UInt?=nil,
-                description: StaticString? = nil,
-                sourceSnippet: String? = nil) {
-        self.name = name
+                description: StaticString? = "nil") {
+        self.role = role
+        self.uLangEntityID = uLangEntityID
         self.file = file
         self.line = line
         self.column = column
         self.description = description
-        self.sourceSnippet = sourceSnippet
         self.isNull = false
+        
+        if let file = file,
+           let line = line,
+           let column = column {
+            self.sourceSnippet = SourceSnippetExtractor.closureBody(from: file, at: line)
+        }
     }
 }
 #endif
 
 public struct LintSpecifier {
-    static nonisolated(unsafe) public let NULL = LintSpecifier({ _ in .unusualExecutionEvent(.exception("Not expected to be executed.")) }, name: "NULL")
+    static nonisolated(unsafe) public let NULL = LintSpecifier({ _ in .unusualExecutionEvent(.exception("Not expected to be executed.")) }, role: "NULL", uLangEntityID: "~NULL~")
     
     public let lint: Lint
     public let metadata: LintMetadata
    
     public init(
         _ lint: @escaping Lint,
-        name: String = "closure",
+        role: String = "unspecified lint",
+        uLangEntityID: ULangEntityID,
         file: StaticString = #filePath,
         line: UInt = #line,
-        column: UInt = #column,
-        description: StaticString? = nil
+        column: UInt = #column
     ) {
         self.lint = lint
-        
-    #if DEBUGGER
-//    print("==== DEBUGGER ENABLED ====")
-    let snippet = SourceSnippetExtractor.closureBody(from: file, at: line)
-    #else
-//    print("==== DEBUGGER DISABLED ====")
-    let snippet: String? = nil
-    #endif
-        
-
-        
+    
 #if DEBUG
         self.metadata = LintMetadata(
-            name: name,
+            role: role,
+            uLangEntityID: uLangEntityID,
             file: file,
             line: line,
             column: column,
-            description: description,
-            sourceSnippet: snippet
         )
 #else
         self.metadata = .NULL
 #endif
+    }
+    
+    public init(
+        _ lint: @escaping Lint,
+        role: String = "unspecified lint",
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        column: UInt = #column
+    ) {
+        self.lint = lint
+    
+#if DEBUG
+        self.metadata = LintMetadata(
+            role: role,
+            uLangEntityID: .NULL,
+            file: file,
+            line: line,
+            column: column,
+        )
+#else
+        self.metadata = .NULL
+#endif
+    }
+    
+    public init(
+        _ lint: @escaping Lint,
+        metadata: LintMetadata,
+        ulangeEntityID: ULangEntityID
+    ) {
+        self.lint = lint
+    
+        #if DEBUG
+        self.metadata = LintMetadata(metadata: metadata, uLangEntityID: ulangeEntityID
+        )
+    #else
+        self.metadata = .NULL
+    #endif
     }
 }
 
@@ -194,7 +239,7 @@ extension LintTable {
             #if DEBUG
             self.allMetadata = specifiers.map(\.metadata)
             assert(allMetadata.count == lints.count)
-            assert(allMetadata.contains(where: {$0.name == nil}))
+            assert(allMetadata.contains(where: {$0.role == nil}))
             #endif
         }
 
