@@ -6,11 +6,12 @@
 //
 
 
-// MARK: - LintTable and Concrete Types
+// MARK: - Block and Concrete Types
+// To aid transition to Block
+@available(*, deprecated, renamed: "Block", message: "Convert LintTable references to Block.")
+public typealias LintTable = Block
 
-public typealias Block = LintTable
-
-public enum LintTable {
+public enum Block {
     public enum Category: Int {
         case sequential
         case concurrent
@@ -41,11 +42,11 @@ public enum LintTable {
     }
 
     public class Node {
-        let table: LintTable.Steppable
+        let table: Block.Steppable
         var counter: Int
-        let previous: LintTable.Node?
+        let previous: Block.Node?
 
-        init(table: LintTable.Steppable, counter: Int, previous: LintTable.Node?) {
+        init(table: Block.Steppable, counter: Int, previous: Block.Node?) {
             self.table = table
             self.counter = counter
             self.previous = previous
@@ -53,8 +54,8 @@ public enum LintTable {
     }
 }
 
-extension LintTable {
-    /// A sequential lint table simply iterates over its lint chain once.
+extension Block {
+    /// A sequential lint block that simply iterates over its lint chain once.
     public struct Sequential: Steppable {
         public var lints: LintArray
         public var identifier: Int
@@ -148,8 +149,8 @@ extension LintTable {
     }
     
     public class Prefaced: Steppable {
-        private var preface: LintTable.Sequential
-        private var main: LintTable.Steppable
+        private var preface: Block.Sequential
+        private var main: Block.Steppable
         
         public var lintCount: Int { isPrefaceRunning ? preface.lintCount : main.lintCount }
 
@@ -158,7 +159,7 @@ extension LintTable {
         
         public var identifier: Int
         
-        public init(preface: LintTable.Sequential, main: LintTable.Steppable, identifier: Int=0) {
+        public init(preface: Block.Sequential, main: Block.Steppable, identifier: Int=0) {
             self.preface = preface
             self.main = main
             
@@ -215,7 +216,7 @@ extension LintTable {
     }
 }
 
-extension LintTable.Steppable {
+extension Block.Steppable {
     #if DEBUG
     @inline(__always)
     public func metadata(runner: LintRunner) -> LintMetadata {
@@ -225,7 +226,7 @@ extension LintTable.Steppable {
 }
 
 public protocol LintProvider: AnyObject {
-    var table: LintTable.Steppable { get }
+    var table: Block.Steppable { get }
     var operationName: String { get }
 }
 
