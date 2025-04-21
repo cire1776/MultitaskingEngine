@@ -446,6 +446,10 @@ open class BaseLintRunner: LintRunner, @unchecked Sendable {
         self.reference = provider // held to prevent disposal
     }
 
+    open func handleSkipYield() async -> OperationState {
+        return await execute()
+    }
+
     public func executeAll() async -> OperationState {
         var result: OperationState
         repeat { result = await execute() } while result == .running
@@ -483,7 +487,7 @@ open class BaseLintRunner: LintRunner, @unchecked Sendable {
             }
             return .completed
         case .skipYield:
-            return await execute()
+            return await handleSkipYield()
         case .nonLocalContinue(let identifier):
             if self.previousTableNode != nil {
                 popSuboperation(identifier: identifier)
