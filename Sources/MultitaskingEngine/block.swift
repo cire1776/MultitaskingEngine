@@ -7,6 +7,9 @@
 
 
 // MARK: - LintTable and Concrete Types
+
+public typealias Block = LintTable
+
 public enum LintTable {
     public enum Category: Int {
         case sequential
