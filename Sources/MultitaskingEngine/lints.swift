@@ -183,6 +183,9 @@ public enum LintTable {
         var allMetadata: [LintMetadata] { get }
 
         @inline(__always)
+        func didStepRun(runner: LintRunner) -> Bool
+        
+        @inline(__always)
         func metadata(runner: LintRunner) -> LintMetadata
         #endif
     }
@@ -210,6 +213,10 @@ extension LintTable {
 
         #if DEBUG
         public var allMetadata: [LintMetadata]
+        
+        public func didStepRun(runner: any LintRunner) -> Bool {
+            return runner.lintCounter < self.lints.count
+        }
         #endif
 
         public init(lints: LintArray, identifier: Int = 0) {
@@ -282,6 +289,12 @@ extension LintTable {
         
         #if DEBUG
         public var allMetadata: [LintMetadata]
+        
+        
+        public func didStepRun(runner: any LintRunner) -> Bool {
+            // Loop always runs again unless externally terminated
+            return true
+        }
         #endif
     }
     
@@ -339,6 +352,14 @@ extension LintTable {
                 return preface.metadata(runner: runner)
             } else {
                 return main.metadata(runner: runner)
+            }
+        }
+        
+        public func didStepRun(runner: any LintRunner) -> Bool {
+            if isPrefaceRunning {
+                return runner.lintCounter < preface.lintCount
+            } else {
+                return main.didStepRun(runner: runner)
             }
         }
         #endif
@@ -440,7 +461,9 @@ final public class ManualLintRunner: LintRunner, @unchecked Sendable {
         let result = await table.executionStep(runner: self)
 
         #if DEBUG
-        lintVisitor?(metadata, result)
+        if table.didStepRun(runner: self) {
+            lintVisitor?(metadata, result)
+        }
         #endif
         
         switch result {
