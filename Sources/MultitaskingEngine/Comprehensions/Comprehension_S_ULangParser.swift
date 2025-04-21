@@ -74,7 +74,7 @@ final public class Comprehension_S_ULangParser: Comprehension.Subscription {
 
         self.table = LintTable.Sequential(lints: [
             { [self] _ in emitLine.initialize(); return .running },
-            { [self] in $0.pushSuboperation(table: produceMainLoop(tickFlowEntityBlocks: tickFlowEntityBlocks)); return .skipYield },
+            { [self] in $0.pushSuboperation(table: produceMainLoop(for:"Comprehension_S_ULangParser", tickFlowEntityBlocks: tickFlowEntityBlocks)); return .skipYield },
             { [self] _ in
                 build.finalize()
                 return .completed }

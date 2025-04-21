@@ -142,7 +142,7 @@ public enum Comprehension {
         func produceTickFlow(flows: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
 
         @inline(__always)
-        func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
+        func produceMainLoop(for executor: String, tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable
     }
 
     final public class Instance: RunnableLintProvider {
@@ -287,14 +287,12 @@ public extension Comprehension.Subscription {
     }
 
     @inline(__always)
-    func produceMainLoop(tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
-        return LintTable.Loop(lints: [
-            { [/*unowned*/ self] _ in context.subscriptions.reset(); return .running },
-            { [/*unowned*/ self] in
-                $0.pushSuboperation(table: produceTickFlow(flows: tickFlowEntityBlocks)); return .skipYield
-            },
-            { [/*unowned*/ self] _ in executionContext.endTick(); return .completed } // continue to loop
-        ], identifier: mainLoopID)
+    func produceMainLoop(for executor: String, tickFlowEntityBlocks: [(LintRunner) -> LintTable.Steppable]) -> LintTable.Steppable {
+        return LintTable.Loop(specifiers: [
+            LintSpecifier({ [/*unowned*/ self] _ in context.subscriptions.reset(); return .running }, role: "Reset subscriptions"),
+            LintSpecifier({ [/*unowned*/ self] in $0.pushSuboperation(table: produceTickFlow(flows: tickFlowEntityBlocks)); return .skipYield }, role: "Load tick flow"),
+            LintSpecifier({ [/*unowned*/ self] _ in executionContext.endTick(); return .completed }, role: "End tick")
+        ].tagged(for: executor), identifier: mainLoopID)
     }
 
     func instantiate(preinitialization_specifier: LintSpecifier?, executionContext: StreamExecutionContext?) -> Comprehension.Instance {

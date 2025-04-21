@@ -78,7 +78,7 @@ final public class Comprehension_S_1A5D27B4: Comprehension.Subscription, @unchec
 
         self.table = LintTable.Sequential(lints: [
             { _ in self.initialize() ; return .running },
-            { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop(tickFlowEntityBlocks: flowEntities)); return .skipYield },
+            { [/*unowned*/ self] in $0.pushSuboperation(table: produceMainLoop(for:"Comprehension_S_1A5D27B4", tickFlowEntityBlocks: flowEntities)); return .skipYield },
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
             { _ in self.finalize() ; return .completed }
         ], identifier: 500)

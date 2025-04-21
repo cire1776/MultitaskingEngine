@@ -55,7 +55,7 @@ internal final class Comprehension_S_TestFlow: Comprehension.Subscription {
 
         self.table = LintTable.Sequential(lints: [
             { [self] _ in emitString.initialize() ; return .running },
-            { [self] in $0.pushSuboperation(table: produceMainLoop(tickFlowEntityBlocks: tickFlowEntityBlocks)); return .skipYield },
+            { [self] in $0.pushSuboperation(table: produceMainLoop(for:"Comprehension_S_TestFlow", tickFlowEntityBlocks: tickFlowEntityBlocks)); return .skipYield },
             { _ in print("Concatenation complete! Output saved in: output.txt" ); return .running },
             { [self] _ in join.finalize() ; return .completed }
 
